@@ -16,8 +16,8 @@ interface ControllerPos {
 
 const ControllerDiv = styled.div<ControllerPos>`
     position: fixed;
-    left: ${props => props.x};
-    top: ${props => props.y};
+    left: ${props => typeof props.x === 'number' ? `${props.x}px` : props.x};
+    top: ${props => typeof props.y=== 'number' ? `${props.y}px` : props.y};
     height: 32px;
     display: flex;
     align-items: center;
@@ -33,9 +33,17 @@ const SixDots = styled(DotsSixVertical)`
     cursor: pointer;
 `
 
-const dragStartHandler = e => {
+const dragStartHandler = (e: any, setX:((x: number) => void), setY:(y: number) => void) => {
     const img = new Image();
-    
+    e.dataTransfer.setDragImage(img, 0, 0);
+
+    setX(e.clientX);
+    setY(e.clientY);
+}
+
+const dragHandler = (e: any, setX:((x: number) => void), setY:(y: number) => void) => {
+    setX(e.clientX);
+    setY(e.clientY);
 }
 
 export function Controller(props: ControllerProps) {
@@ -54,8 +62,8 @@ export function Controller(props: ControllerProps) {
                 weight: "bold"
             }}    
         >
-            <ControllerDiv x={x} y={y} draggable="true">
-                <SixDots color="#939DBB" />
+            <ControllerDiv x={x} y={y} draggable onDragStart={e => dragStartHandler(e, setX, setY)} onDrag={e => dragHandler(e, setX, setY)} >
+                <SixDots color="#939DBB"/>
                 {props.children}
             </ControllerDiv>
         </IconContext.Provider>
