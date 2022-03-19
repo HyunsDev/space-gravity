@@ -1,23 +1,32 @@
 import styled from "styled-components"
 import { IconContext, DotsSixVertical } from "phosphor-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-
-interface ControllerProps {
-    x: number | string;
-    y: number | string;
-    children: React.ReactNode | string;
-}
 
 interface ControllerPos {
-    x: number | string;
-    y: number | string;
+    top?: number;
+    left?: number;
+    right?: number;
+    bottom?: number;
+}
+interface ControllerProps {
+    children: React.ReactNode | string;
+    top?: ControllerPos['top'];
+    left?: ControllerPos['left'];
+    right?: ControllerPos['right'];
+    bottom?: ControllerPos['bottom'];
+}
+
+interface ControllerMoveProps {
+    originRef: any;
 }
 
 const ControllerDiv = styled.div<ControllerPos>`
     position: fixed;
-    left: ${props => typeof props.x === 'number' ? `${props.x}px` : props.x};
-    top: ${props => typeof props.y=== 'number' ? `${props.y}px` : props.y};
+    ${props => props.top && `top: ${props.top}px`};
+    ${props => props.left && `left: ${props.left}px`};
+    ${props => props.right && `right: ${props.right}px`};
+    ${props => props.bottom && `bottom: ${props.bottom}px`};
     height: 32px;
     display: flex;
     align-items: center;
@@ -27,32 +36,69 @@ const ControllerDiv = styled.div<ControllerPos>`
     width: fit-content;
     box-sizing: border-box;
     gap: 8px;
+
+    &:active {
+        cursor: grabbing;
+    }
 `
 
 const SixDots = styled(DotsSixVertical)`
-    cursor: pointer;
+    cursor: grab;
 `
 
-const dragStartHandler = (e: any, setX:((x: number) => void), setY:(y: number) => void) => {
+let posX = 0;
+let posY = 0;
+let originalX = 0;
+let originalY = 0;
+
+const dragStartHandler = (e: any, ref: any) => {
     const img = new Image();
     e.dataTransfer.setDragImage(img, 0, 0);
 
-    setX(e.clientX);
-    setY(e.clientY);
+    posX = e.clientX;
+    posY = e.clientY;
+    originalX = ref.current.offsetLeft;
+    originalY = ref.current.offsetTop;
 }
 
-const dragHandler = (e: any, setX:((x: number) => void), setY:(y: number) => void) => {
-    setX(e.clientX);
-    setY(e.clientY);
+const dragHandler = (e: any, ref: any) => {
+    ref.current.style.left = `${ref.current.offsetLeft + e.clientX - posX}px`;
+    ref.current.style.top = `${ref.current.offsetTop + e.clientY - posY}px`;
+    posX = e.clientX;
+    posY = e.clientY;
+}
+
+const dragEndHandler = (e: any, ref: any) => {
+    if (
+        0 < e.clientX &&
+        e.clientX < window.innerWidth &&
+        0 < e.clientY &&
+        e.clientY < window.innerHeight
+    ) {
+        ref.current.style.left = `${ref.current.offsetLeft + e.clientX - posX}px`;
+        ref.current.style.top = `${ref.current.offsetTop + e.clientY - posY}px`;
+    } else {
+        ref.current.style.left = `${originalX}px`;
+        ref.current.style.top = `${originalY}px`;
+    }
+    
+}
+
+const ControllerMove = (props: ControllerMoveProps) => {
+    return (
+        <div 
+            draggable
+            onDragStart={e => dragStartHandler(e, props.originRef)}
+            onDrag={e => dragHandler(e, props.originRef)} 
+            onDragEnd={e => dragEndHandler(e, props.originRef)}
+        >
+            <SixDots color="#939DBB"/>
+        </div>
+    )
 }
 
 export function Controller(props: ControllerProps) {
-    const [ x, setX ] = useState(props.x);
-    const [ y, setY ] = useState(props.y);
-
-    useEffect(() => {
-
-    }, [])
+    const ref = useRef<any>()
 
     return (
         <IconContext.Provider
@@ -60,12 +106,16 @@ export function Controller(props: ControllerProps) {
                 color: '#CCD2E2',
                 size: 20,
                 weight: "bold"
-            }}    
+            }}
         >
-            <ControllerDiv x={x} y={y} draggable onDragStart={e => dragStartHandler(e, setX, setY)} onDrag={e => dragHandler(e, setX, setY)} >
-                <SixDots color="#939DBB"/>
+            <ControllerDiv
+                {...props}
+                ref={ref}
+            >
+                <ControllerMove originRef={ref} />
                 {props.children}
             </ControllerDiv>
+            
         </IconContext.Provider>
     )
 }
