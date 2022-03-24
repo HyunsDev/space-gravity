@@ -7,4 +7,9 @@
 body {
   background-color: #020511;
   color: #ffffff;
+  overflow: hidden;
+}
+
+:root {
+  
 }

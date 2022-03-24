@@ -8,7 +8,7 @@ const ToolTipBox = styled.div`
     border-radius: 6px;
     padding: 4px 8px;
     position: absolute;
-    z-index: 1;
+    z-index: 10;
     transition: 400ms;
     transition-delay: 600ms;
     opacity: 0;
@@ -62,17 +62,15 @@ const ToolTipDiv = styled.div`
 interface ToolTipProps {
     children: React.ReactNode;
     text: string;
-    direction?: 'top' | 'right' | 'bottom' | 'left'
+    direction?: 'top' | 'bottom'
 }
 
 export function ToolTip(props: ToolTipProps) {
-    if (props.direction === 'right') {
-
-    }
-
     return (
         <ToolTipDiv>
-            <ToolTipBoxTop>{props.text}</ToolTipBoxTop>
+            {props.direction === 'bottom'
+                ? <ToolTipBoxBottom>{props.text}</ToolTipBoxBottom>
+                : <ToolTipBoxTop>{props.text}</ToolTipBoxTop>}
             {props.children}
         </ToolTipDiv>
     )

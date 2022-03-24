@@ -1,6 +1,6 @@
 import styled from "styled-components"
 import { IconContext, DotsSixVertical } from "phosphor-react";
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 
 
 interface ControllerPos {
@@ -11,8 +11,9 @@ interface ControllerPos {
 }
 interface ControllerProps {
     children: React.ReactNode | string;
+    minWidth?: number;
     top?: ControllerPos['top'];
-    left?: ControllerPos['left'];
+    left?: ControllerPos['left']; 
     right?: ControllerPos['right'];
     bottom?: ControllerPos['bottom'];
 }
@@ -21,25 +22,26 @@ interface ControllerMoveProps {
     originRef: any;
 }
 
-const ControllerDiv = styled.div<ControllerPos>`
+const ControllerDiv = styled.div<ControllerProps>`
     position: fixed;
     ${props => props.top && `top: ${props.top}px`};
     ${props => props.left && `left: ${props.left}px`};
     ${props => props.right && `right: ${props.right}px`};
     ${props => props.bottom && `bottom: ${props.bottom}px`};
-    height: 32px;
+    min-height: 32px;
+    height: fit-content;
+    ${props => props.minWidth && `min-width: ${props.minWidth}px`};
     display: flex;
     align-items: center;
-    padding: 0px 8px;
+    padding: 4px 8px;
     border-radius: 4px;
-    background-color: #2C303E;
+    background-color: rgba(44,48,62, 0.4);
+    backdrop-filter: blur(5px);
     width: fit-content;
     box-sizing: border-box;
     gap: 8px;
-
-    &:active {
-        cursor: grabbing;
-    }
+    color: #CCD2E2;
+    user-select: none;
 `
 
 const SixDots = styled(DotsSixVertical)`
@@ -64,6 +66,8 @@ const dragStartHandler = (e: any, ref: any) => {
 const dragHandler = (e: any, ref: any) => {
     ref.current.style.left = `${ref.current.offsetLeft + e.clientX - posX}px`;
     ref.current.style.top = `${ref.current.offsetTop + e.clientY - posY}px`;
+    ref.current.style.right = 'fit-content';
+    ref.current.style.bottom = `none`;
     posX = e.clientX;
     posY = e.clientY;
 }
@@ -84,16 +88,21 @@ const dragEndHandler = (e: any, ref: any) => {
     
 }
 
+const ControllerMoveDiv = styled.div`
+    display: flex;
+    align-items: center;
+`
+
 const ControllerMove = (props: ControllerMoveProps) => {
     return (
-        <div 
+        <ControllerMoveDiv 
             draggable
             onDragStart={e => dragStartHandler(e, props.originRef)}
             onDrag={e => dragHandler(e, props.originRef)} 
             onDragEnd={e => dragEndHandler(e, props.originRef)}
         >
             <SixDots color="#939DBB"/>
-        </div>
+        </ControllerMoveDiv>
     )
 }
 
