@@ -11,6 +11,7 @@ interface MousePos {
 }
 
 const CanvasTag = styled.canvas`
+    cursor: crosshair;
 `
 
 export function Canvas(props: CanvasProps){
@@ -25,8 +26,9 @@ export function Canvas(props: CanvasProps){
           x: event.pageX - canvas.offsetLeft,
           y: event.pageY - canvas.offsetTop
         };
-      };
+    };
 
+    // 선 그리기
     const drawLine = (originalMousePosition: MousePos, newMousePosition: MousePos) => {
         if (!canvasRef.current) return;
         const canvas: HTMLCanvasElement = canvasRef.current;
@@ -46,28 +48,40 @@ export function Canvas(props: CanvasProps){
         }
     };
 
+    // 원 그리기
+    const drawCircle = (mousePos: MousePos) => {
+        if (!canvasRef.current) return;
+        const canvas: HTMLCanvasElement = canvasRef.current;
+        const context = canvas.getContext('2d');
+        if(!context) return
+        
+        context.beginPath()
+        context.arc(mousePos.x, mousePos.y, 50, 0, 2*Math.PI) 
+        context.stroke()
+        context.fillStyle = 'blue'
+        context.fill()
+    }
+
     const startPaint = useCallback((event: MouseEvent) => {
-        const coordinates = getMousePos(event);
-        if (coordinates) {
-          setIsPainting(true);
-          setMousePosition(coordinates);
-        }
+        const mousePos = getMousePos(event);
+        if (!mousePos) return
+        setIsPainting(true);
+        setMousePosition(mousePos);
+        drawCircle(mousePos)
     }, []);
 
     const paint = useCallback(
-    (event: MouseEvent) => {
-        event.preventDefault();   // drag 방지
-        event.stopPropagation();  // drag 방지
+        (event: MouseEvent) => {
+            event.preventDefault();
 
-        if (isPainting) {
-        const newMousePosition = getMousePos(event);
-        if (mousePosition && newMousePosition) {
-            drawLine(mousePosition, newMousePosition);
-            setMousePosition(newMousePosition);
-        }
-        }
-    },
-    [isPainting, mousePosition]
+            if (isPainting) {
+                const newMousePosition = getMousePos(event);
+                if (mousePosition && newMousePosition) {
+                    drawLine(mousePosition, newMousePosition);
+                }
+            }
+        },
+        [isPainting, mousePosition]
     );
     
     const exitPaint = useCallback(() => {
@@ -91,8 +105,8 @@ export function Canvas(props: CanvasProps){
     }, [exitPaint, paint, startPaint])
 
     return (
-        <canvas ref={canvasRef} height={window.innerHeight} width={window.innerWidth}>
+        <CanvasTag ref={canvasRef} height={window.innerHeight} width={window.innerWidth}>
             
-        </canvas>
+        </CanvasTag>
     )
 }

@@ -2,7 +2,7 @@ import styled from "styled-components"
 
 interface LabelProps {
     name: string;
-    value: string;
+    value: string | number;
     icon?: React.ReactNode;
 }
 

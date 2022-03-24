@@ -8,7 +8,7 @@ const ToolTipBox = styled.div`
     border-radius: 6px;
     padding: 4px 8px;
     position: absolute;
-    z-index: 1;
+    z-index: 10;
     transition: 400ms;
     transition-delay: 600ms;
     opacity: 0;
