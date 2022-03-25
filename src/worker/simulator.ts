@@ -37,7 +37,7 @@ export default function simulator() {
         switch (event.data.kind) {
             case 'planetAdd':
                 // self.postMessage(event.data.planets)
-                planets = [...planets, event.data.newPlanet]
+                planets.push(event.data.newPlanet)
                 break
 
             case 'speedUpdate':
