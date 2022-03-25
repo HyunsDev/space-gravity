@@ -8,6 +8,8 @@ interface MousePos {
 
 interface CursorProps {
     weight: number;
+    label?: string;
+    cursorMode: 'create' | 'create-vector';
 }
 
 const CursorDiv = styled.div`
@@ -21,6 +23,17 @@ const CursorBorder = styled.div<CursorProps>`
     box-sizing: border-box;
     border-radius: 999999px;
     border: solid 1px #ffffff;
+`
+
+const Label = styled.div`
+    position: absolute;
+    bottom: -30px;
+    left: 50%;
+    transform: translate(-50%, 0);
+    color: #CCD2E2;
+    white-space:nowrap; 
+    user-select: none;
+    font-size: 14px;
 `
 
 export function Cursor(props: CursorProps) {
@@ -71,8 +84,8 @@ export function Cursor(props: CursorProps) {
     return (
         <CursorDiv ref={ref}>
             {isMouseDown ? <></> : <CursorBorder {...props} />}
+            { props.label && <Label>{props.label}</Label> }
         </CursorDiv>
-        
     )
 }
 

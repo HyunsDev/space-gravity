@@ -1,8 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import styled from "styled-components"
 
+interface Planet {
+    size: number;
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    color?: string;
+}
+
 interface CanvasProps {
-    weight: number
+    weight: number;
+    setCursorMode: Function;
+    setMouseVector: Function;
+    setPlanets: Function;
+    planets: Planet[];
 }
 
 interface MousePos {
@@ -12,6 +25,9 @@ interface MousePos {
 
 const CanvasTag = styled.canvas`
     cursor: crosshair;
+    position: absolute;
+    left: 0;
+    top: 0;
 `
 
 export function VectorCanvas(props: CanvasProps){
@@ -71,36 +87,54 @@ export function VectorCanvas(props: CanvasProps){
 
     // 선 시작
     const startPaint = useCallback((event: MouseEvent) => {
+        props.setCursorMode('create-vector')
+        props.setMouseVector({x: 0, y:0})
         const mousePos = getMousePos(event);
         if (!mousePos) return
         setIsPainting(true);
         setMousePosition(mousePos);
         setFirstMousePosition(mousePos)
-    }, []);
+    }, [props]);
 
     const paint = useCallback(
         (event: MouseEvent) => {
             event.preventDefault();
-
             if (isPainting) {
                 const newMousePosition = getMousePos(event);
-                if (mousePosition && newMousePosition) {
+                if (firstMousePosition && newMousePosition) {
+                    props.setMouseVector({x: newMousePosition.x-firstMousePosition.x, y:newMousePosition.y-firstMousePosition.y})
                     setMousePosition(newMousePosition)
                 }
             }
         },
-        [isPainting, mousePosition]
+        [firstMousePosition, isPainting, props]
     );
     
     const exitPaint = useCallback(() => {
+        props.setCursorMode('create')
         if (!canvasRef.current) return;
         const canvas: HTMLCanvasElement = canvasRef.current;
         const context = canvas.getContext('2d');
         if(!context) return
 
-        setIsPainting(false);
-        context.clearRect(0, 0, canvas.width, canvas.height);
-    }, []);
+        if (isPainting) {
+            if (!mousePosition || !firstMousePosition) return
+            const planet = {
+                x: firstMousePosition.x,
+                y: firstMousePosition.y,
+                vx: mousePosition.x-firstMousePosition.x,
+                vy: mousePosition.y-firstMousePosition.y,
+                size: props.weight
+            }
+            props.setPlanets([...props.planets, planet])
+            setIsPainting(false);
+            context.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        return () => {
+            props.setPlanets([])
+        }
+    }, [firstMousePosition, isPainting, mousePosition, props]);
 
     // 렌더링 함수
     const render = useCallback(() => {

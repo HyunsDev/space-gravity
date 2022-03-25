@@ -15,6 +15,7 @@ const ToolTipBox = styled.div`
     font-size: 12px;
     left: 50%;
     transform: translate(-50%, 0%);
+    white-space:nowrap; 
 
     &::after {
         content: '';
