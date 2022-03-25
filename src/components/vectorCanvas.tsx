@@ -14,8 +14,7 @@ interface CanvasProps {
     weight: number;
     setCursorMode: Function;
     setMouseVector: Function;
-    setPlanets: Function;
-    planets: Planet[];
+    setNewPlanet: Function;
 }
 
 interface MousePos {
@@ -126,13 +125,9 @@ export function VectorCanvas(props: CanvasProps){
                 vy: mousePosition.y-firstMousePosition.y,
                 size: props.weight
             }
-            props.setPlanets([...props.planets, planet])
+            props.setNewPlanet(planet)
             setIsPainting(false);
             context.clearRect(0, 0, canvas.width, canvas.height);
-        }
-
-        return () => {
-            props.setPlanets([])
         }
     }, [firstMousePosition, isPainting, mousePosition, props]);
 

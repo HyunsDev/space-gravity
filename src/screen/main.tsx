@@ -2,7 +2,9 @@ import { Controller, Button, Label, Labels, VectorCanvas, Cursor, PlanetCanvas }
 import { Play, Pause, Cursor as CursorIcon , CaretRight, CaretLeft, HandPointing, ArrowUpRight, Plus, Minus } from "phosphor-react";
 import Logo from '../assets/lettering.png'
 import styled from "styled-components";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import simulator from "../worker/simulator";
+import { Webworker } from "../worker/WebWorker";
 
 const LogoDiv = styled.div`
     position: fixed;
@@ -36,12 +38,14 @@ const Canvases = styled.div`
 `
 
 export default function Main() {
+    const [ newPlanet, setNewPlanet ] = useState<Planet>()
     const [ planets, setPlanets ] = useState<Planet[]>([])
     const [ isPlay, setPlay ] = useState(false)
     const [ speed, setSpeed ] = useState(1)
     const [ weight, setWeight ] = useState(32)
     const [ cursorMode, setCursorMode ] = useState<'create' | 'create-vector'>('create')
     const [ mouseVector, setMouseVector ] = useState({x: 0, y: 0})
+    const _worker = useRef<any>(null)
 
     let cursorLabel
     switch (cursorMode) {
@@ -56,6 +60,41 @@ export default function Main() {
             break;
     }
 
+    useEffect(() => {
+        _worker.current = Webworker(simulator)
+
+        // 메세지 수신
+        _worker.current.onmessage = (msg:any) => {
+            switch (msg.data.kind) {
+                case 'newPlanets':
+                    setPlanets(msg.data.planets)
+                    break;
+            
+                default:
+                    
+                    break;
+            }
+        }
+
+        // return () => {
+        //     _worker.current.onmessage = null
+        // }
+    }, [])
+
+    // 새로운 행성 추가
+    useEffect(() => {
+        if (!_worker.current) return
+        if (!newPlanet) return
+        _worker.current.postMessage({kind: 'planetAdd', newPlanet})
+        setNewPlanet(undefined)
+    }, [newPlanet])
+
+    // 속도 변경
+    useEffect(() => {
+        if (!_worker.current) return
+        _worker.current.postMessage({kind: 'speedUpdate', speed})
+    }, [newPlanet, speed])
+
     return (
         <>  
             <Canvases>
@@ -63,8 +102,7 @@ export default function Main() {
                     weight={weight}
                     setCursorMode={setCursorMode}
                     setMouseVector={setMouseVector}
-                    setPlanets={setPlanets}
-                    planets={planets}
+                    setNewPlanet={setNewPlanet}
                 ></VectorCanvas>
 
                 <PlanetCanvas
