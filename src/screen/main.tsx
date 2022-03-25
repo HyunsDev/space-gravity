@@ -1,4 +1,4 @@
-import { Controller, Button, Label, Labels, Canvas, Cursor } from "../components";
+import { Controller, Button, Label, Labels, VectorCanvas, Cursor } from "../components";
 import { Play, Pause, Cursor as CursorIcon , CaretRight, CaretLeft, HandPointing, ArrowUpRight, Plus, Minus } from "phosphor-react";
 import Logo from '../assets/lettering.png'
 import styled from "styled-components";
@@ -26,7 +26,7 @@ export default function Main() {
 
     return (
         <>  
-            <Canvas></Canvas>
+            <VectorCanvas weight={weight}></VectorCanvas>
             <Cursor weight={weight} />
             <LogoDiv>
                 <img src={Logo} alt='스페이스 그래비티 로고' />

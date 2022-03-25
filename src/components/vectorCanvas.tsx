@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import styled from "styled-components"
 
 interface CanvasProps {
-    
+    weight: number
 }
 
 interface MousePos {
@@ -14,10 +14,12 @@ const CanvasTag = styled.canvas`
     cursor: crosshair;
 `
 
-export function Canvas(props: CanvasProps){
+export function VectorCanvas(props: CanvasProps){
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const requestAnimationRef = useRef<any>(null);
+    const [ firstMousePosition, setFirstMousePosition ] = useState<MousePos | undefined>(undefined)
     const [ mousePosition, setMousePosition ] = useState<MousePos | undefined>(undefined)
-    const [isPainting, setIsPainting] = useState(false);
+    const [ isPainting, setIsPainting ] = useState(false);
 
     const getMousePos = (event: MouseEvent): MousePos | undefined => {
         if (!canvasRef.current) return;
@@ -37,7 +39,7 @@ export function Canvas(props: CanvasProps){
         if (context) {
             context.strokeStyle = "red";  // 선 색깔
             context.lineJoin = 'round';	// 선 끄트머리(?)
-            context.lineWidth = 5;		// 선 굵기
+            context.lineWidth = 1;		// 선 굵기
 
             context.beginPath();
             context.moveTo(originalMousePosition.x, originalMousePosition.y);
@@ -49,25 +51,31 @@ export function Canvas(props: CanvasProps){
     };
 
     // 원 그리기
-    const drawCircle = (mousePos: MousePos) => {
+    const drawCircle = useCallback((mousePos: MousePos) => {
         if (!canvasRef.current) return;
         const canvas: HTMLCanvasElement = canvasRef.current;
         const context = canvas.getContext('2d');
         if(!context) return
         
         context.beginPath()
-        context.arc(mousePos.x, mousePos.y, 50, 0, 2*Math.PI) 
-        context.stroke()
-        context.fillStyle = 'blue'
-        context.fill()
-    }
+        context.arc(mousePos.x, mousePos.y, props.weight/2, 0, 2*Math.PI) 
 
+        context.fillStyle = '#1C1311'
+        context.fill()
+    
+        context.strokeStyle = "#f9951c";
+        context.lineWidth = 1;
+        context.stroke()
+
+    }, [props.weight])
+
+    // 선 시작
     const startPaint = useCallback((event: MouseEvent) => {
         const mousePos = getMousePos(event);
         if (!mousePos) return
         setIsPainting(true);
         setMousePosition(mousePos);
-        drawCircle(mousePos)
+        setFirstMousePosition(mousePos)
     }, []);
 
     const paint = useCallback(
@@ -77,7 +85,7 @@ export function Canvas(props: CanvasProps){
             if (isPainting) {
                 const newMousePosition = getMousePos(event);
                 if (mousePosition && newMousePosition) {
-                    drawLine(mousePosition, newMousePosition);
+                    setMousePosition(newMousePosition)
                 }
             }
         },
@@ -85,8 +93,39 @@ export function Canvas(props: CanvasProps){
     );
     
     const exitPaint = useCallback(() => {
+        if (!canvasRef.current) return;
+        const canvas: HTMLCanvasElement = canvasRef.current;
+        const context = canvas.getContext('2d');
+        if(!context) return
+
         setIsPainting(false);
+        context.clearRect(0, 0, canvas.width, canvas.height);
     }, []);
+
+    // 렌더링 함수
+    const render = useCallback(() => {
+        if (!canvasRef.current) return;
+        const canvas: HTMLCanvasElement = canvasRef.current;
+        const context = canvas.getContext('2d');
+        if(!context) return
+
+        if (isPainting && firstMousePosition && mousePosition) {
+            context.beginPath()
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            drawCircle(firstMousePosition)
+            drawLine(firstMousePosition, mousePosition);
+        }
+
+        requestAnimationRef.current = requestAnimationFrame(render);
+    }, [drawCircle, firstMousePosition, isPainting, mousePosition])
+
+    // 렌더링
+    useEffect(() => {
+        requestAnimationRef.current = requestAnimationFrame(render);
+        return () => {
+            cancelAnimationFrame(requestAnimationRef.current);
+        };
+    })
 
     useEffect(() => {
         if (!canvasRef.current) return
@@ -105,8 +144,7 @@ export function Canvas(props: CanvasProps){
     }, [exitPaint, paint, startPaint])
 
     return (
-        <CanvasTag ref={canvasRef} height={window.innerHeight} width={window.innerWidth}>
-            
+        <CanvasTag ref={canvasRef} width={window.innerWidth} height={window.innerHeight}>
         </CanvasTag>
     )
 }
