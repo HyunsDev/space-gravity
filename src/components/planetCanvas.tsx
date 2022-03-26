@@ -2,7 +2,8 @@ import { useCallback, useEffect, useRef } from "react"
 import styled from "styled-components"
 
 interface Planet {
-    size: number;
+    weight: number;
+    radius: number;
     x: number;
     y: number;
     vx: number;
@@ -11,7 +12,7 @@ interface Planet {
 }
 
 interface CanvasProps {
-    planets: Planet[];
+    planets: {[key: string]: Planet};
 }
 
 const CanvasTag = styled.canvas`
@@ -26,7 +27,7 @@ export function PlanetCanvas(props: CanvasProps){
     const drawPlanet = useCallback((planet: Planet, context:CanvasRenderingContext2D ) => {
         context.beginPath()
 
-        context.arc(planet.x, planet.y, planet.size/2, 0, 2*Math.PI) 
+        context.arc(planet.x, planet.y, planet.radius, 0, 2*Math.PI) 
         context.fillStyle = '#061B33'
         context.fill()
     
@@ -45,7 +46,7 @@ export function PlanetCanvas(props: CanvasProps){
         context.beginPath()
         context.clearRect(0, 0, canvas.width, canvas.height);
 
-        props.planets.forEach(e => {
+        Object.values(props.planets).forEach(e => {
             drawPlanet(e, context)
         })
 
