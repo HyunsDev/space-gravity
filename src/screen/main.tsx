@@ -16,8 +16,8 @@ import {
 import Logo from '../assets/lettering.png'
 import styled from "styled-components";
 import { useEffect, useRef, useState } from "react";
-import simulator from "../worker/simulator";
-import { Webworker } from "../worker/WebWorker";
+// import simulator from "../worker/simulator";
+// import { Webworker } from "../worker/WebWorker";
 import { v4 as uuidv4 } from 'uuid';
 
 const LogoDiv = styled.div`
@@ -77,7 +77,8 @@ export default function Main() {
     }
 
     useEffect(() => {
-        _worker.current = Webworker(simulator)
+        // _worker.current = Webworker(simulator)
+        _worker.current = new Worker('./simulator.js')
 
         // 메세지 수신
         _worker.current.onmessage = (msg:any) => {
