@@ -2,24 +2,14 @@
 
 
 
-interface Planet {
-    weight: number;
-    radius: number;
-    x: number;
-    y: number;
-    vx: number;
-    vy: number;
-    color?: string;
-}
-
-export default function simulator() {
-    let loopId:NodeJS.Timer
-    let planets: {[key: string]: Planet} = {}
+function simulator() {
+    let loopId
+    let planets= {}
     let speed = 1
     const SPEED_RADIUS = 200
     const SPACE_G = 1
 
-    const getSquaredDistance = (planet:Planet, targetPlanet: Planet) => {
+    const getSquaredDistance = (planet, targetPlanet) => {
         return Math.round((planet.x - targetPlanet.x)**2 + (planet.y - targetPlanet.y)**2)
     }
 
@@ -28,7 +18,7 @@ export default function simulator() {
     // }
 
 
-    const getGravitationalAcceleration = (planet:Planet, targetPlanet: Planet) => {
+    const getGravitationalAcceleration = (planet, targetPlanet) => {
         return {
             ax: - SPACE_G * planet.weight * targetPlanet.weight * ( planet.x - targetPlanet.x ) / Math.abs((planet.x - targetPlanet.x))**3,
             ay: - SPACE_G * planet.weight * targetPlanet.weight * ( planet.y - targetPlanet.y ) / Math.abs((planet.y - targetPlanet.y))**3
@@ -36,12 +26,12 @@ export default function simulator() {
     }
 
     loopId = setTimeout(function loop() {
-        const newPlanets: {[key: string]: Planet} = planets
+        const newPlanets = {...planets}
 
         // 주요 로직
-        Object.keys(planets).forEach(planetId => {
+        for (let planetId of Object.keys(planets)) {
             const planet = newPlanets[planetId]
-            if ( !planet ) return // 삭제된 행성 계산 무시
+            if ( !planet ) continue // 삭제된 행성 계산 무시
 
             newPlanets[planetId] =  {
                 weight: planet.weight,
@@ -79,7 +69,7 @@ export default function simulator() {
                 newPlanets[planetId].vx = newPlanets[planetId].vx + a.ax
                 newPlanets[planetId].vy = newPlanets[planetId].vy + a.ay
             }
-        })
+        }
 
         planets = newPlanets
         self.postMessage({kind: 'newPlanets', planets: newPlanets})
@@ -108,3 +98,5 @@ export default function simulator() {
         }
     })
 }
+
+simulator()
