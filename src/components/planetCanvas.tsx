@@ -36,6 +36,34 @@ export function PlanetCanvas(props: CanvasProps){
         context.stroke()
     }, [])
 
+    // 선 그리기
+    const drawLine = (planet: Planet, context:CanvasRenderingContext2D ) => {
+          // 선 색깔
+        context.lineJoin = 'round';	// 선 끄트머리(?)
+        context.lineWidth = 1;		// 선 굵기
+
+        context.beginPath();
+        context.strokeStyle = "green";
+        context.moveTo(planet.x, planet.y);
+        context.lineTo(planet.x + planet.vx, planet.y + planet.vy);
+        context.closePath();
+        context.stroke();
+
+        context.beginPath();
+        context.strokeStyle = "red";
+        context.moveTo(planet.x, planet.y);
+        context.lineTo(planet.x + planet.vx, planet.y);
+        context.closePath();
+        context.stroke();
+
+        context.beginPath();
+        context.strokeStyle = "#24b5ee";
+        context.moveTo(planet.x, planet.y);
+        context.lineTo(planet.x, planet.y + planet.vy);
+        context.closePath();
+        context.stroke();
+    };
+
     // 렌더링 함수
     const render = useCallback(() => {
         if (!canvasRef.current) return;
@@ -48,6 +76,7 @@ export function PlanetCanvas(props: CanvasProps){
 
         Object.values(props.planets).forEach(e => {
             drawPlanet(e, context)
+            drawLine(e, context)
         })
 
         requestAnimationRef.current = requestAnimationFrame(render);

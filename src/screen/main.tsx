@@ -141,31 +141,24 @@ export default function Main() {
                 </Labels>
             </Controller>
 
-            <Controller left={20} bottom={140}>
+            <Controller left={20} bottom={100}>
                 <Button content={<ArrowsIn />} tooltip='작게' onClick={() => radius-4 > 0 && setRadius(radius-4)} />
                 <Button content={`${radius}`} tooltip='반지름' onClick={() => null} />
                 <Button content={<ArrowsOut />} tooltip='크게' onClick={() => setRadius(radius+4)} />
             </Controller>
 
-            <Controller left={20} bottom={100}>
+            <Controller left={20} bottom={60}>
                 <Button content={<Minus />} tooltip='가볍게' onClick={() => weight-8 > 0 && setWeight(weight-8)} />
                 <Button content={`${weight}`} tooltip='질량' onClick={() => null} />
                 <Button content={<Plus />} tooltip='무겁게' onClick={() => setWeight(weight+8)} />
             </Controller>
 
-            <Controller left={20} bottom={60}>
+            <Controller left={20} bottom={20}>
                 <Button content={isPlay ? <Pause /> : <Play />} tooltip='Play' onClick={() => setPlay(!isPlay)} />
                 <Button content={<ArrowClockwise />} tooltip='초기화' onClick={() => window.confirm('정말로 초기화하시겠어요?') && window.location.reload()} />
                 <Button content={<CaretLeft  />} tooltip='느리게' onClick={() => speed-1 > 0 && setSpeed(speed-1)} />
                 <Button content={`${speed}x`} tooltip='Play' onClick={() => console.log('play')} />
                 <Button content={<CaretRight  />} tooltip='빠르게' onClick={() => setSpeed(speed+1)} />
-            </Controller>
-
-            <Controller left={20} bottom={20}>
-                <Button content={<Plus />} tooltip='Pause' onClick={() => console.log('play')} />
-                <Button content={<CursorIcon />} tooltip='Play' onClick={() => console.log('play')} />
-                <Button content={<HandPointing />} tooltip='Pause' onClick={() => console.log('play')} />
-                <Button content={<ArrowUpRight />} tooltip='Pause' onClick={() => console.log('play')} />
             </Controller>
         </>
     )

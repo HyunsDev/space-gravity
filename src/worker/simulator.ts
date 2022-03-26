@@ -12,15 +12,27 @@ interface Planet {
     color?: string;
 }
 
-
 export default function simulator() {
     let loopId:NodeJS.Timer
     let planets: {[key: string]: Planet} = {}
     let speed = 1
     const SPEED_RADIUS = 200
+    const SPACE_G = 1
 
     const getSquaredDistance = (planet:Planet, targetPlanet: Planet) => {
         return Math.round((planet.x - targetPlanet.x)**2 + (planet.y - targetPlanet.y)**2)
+    }
+
+    // const getVector = ( a1, a2 ) => {
+
+    // }
+
+
+    const getGravitationalAcceleration = (planet:Planet, targetPlanet: Planet) => {
+        return {
+            ax: - SPACE_G * planet.weight * targetPlanet.weight * ( planet.x - targetPlanet.x ) / Math.abs((planet.x - targetPlanet.x))**3,
+            ay: - SPACE_G * planet.weight * targetPlanet.weight * ( planet.y - targetPlanet.y ) / Math.abs((planet.y - targetPlanet.y))**3
+        }
     }
 
     loopId = setTimeout(function loop() {
@@ -47,19 +59,25 @@ export default function simulator() {
                 // 충돌 감지
                 if (getSquaredDistance(planet, targetPlanet) < (planet.radius + targetPlanet.radius)**2) {
                     const weight = newPlanets[planetId].weight + newPlanets[targetPlanetId].weight
-                    const radius =  Math.sqrt(newPlanets[planetId].radius**2 + newPlanets[targetPlanetId].radius**2)
+                    const radius = Math.round(Math.sqrt(newPlanets[planetId].radius**2 + newPlanets[targetPlanetId].radius**2))
 
                     if (planet.radius >= targetPlanet.radius) {
                         newPlanets[planetId].weight = weight
                         newPlanets[planetId].radius = radius
-                        
                         delete newPlanets[targetPlanetId]
                     } else {
                         newPlanets[targetPlanetId].weight = weight
                         newPlanets[targetPlanetId].radius = radius
                         delete newPlanets[planetId]
                     }
+
+                    continue
                 }
+
+                // 중력 가속도
+                const a = getGravitationalAcceleration(planet, targetPlanet)
+                newPlanets[planetId].vx = newPlanets[planetId].vx + a.ax
+                newPlanets[planetId].vy = newPlanets[planetId].vy + a.ay
             }
         }
 
