@@ -18,8 +18,8 @@ const CursorDiv = styled.div`
 `
 
 const CursorBorder = styled.div<CursorProps>`
-    width: ${props => props.weight}px;
-    height: ${props => props.weight}px;
+    width: ${props => props.weight*2}px;
+    height: ${props => props.weight*2}px;
     box-sizing: border-box;
     border-radius: 999999px;
     border: solid 1px #ffffff;

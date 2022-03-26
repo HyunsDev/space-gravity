@@ -2,7 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import styled from "styled-components"
 
 interface Planet {
-    size: number;
+    weight: number;
+    radius: number;
     x: number;
     y: number;
     vx: number;
@@ -12,6 +13,7 @@ interface Planet {
 
 interface CanvasProps {
     weight: number;
+    radius: number;
     setCursorMode: Function;
     setMouseVector: Function;
     setNewPlanet: Function;
@@ -73,7 +75,7 @@ export function VectorCanvas(props: CanvasProps){
         if(!context) return
         
         context.beginPath()
-        context.arc(mousePos.x, mousePos.y, props.weight/2, 0, 2*Math.PI) 
+        context.arc(mousePos.x, mousePos.y, props.radius, 0, 2*Math.PI) 
 
         context.fillStyle = '#1C1311'
         context.fill()
@@ -82,7 +84,7 @@ export function VectorCanvas(props: CanvasProps){
         context.lineWidth = 1;
         context.stroke()
 
-    }, [props.weight])
+    }, [props.radius])
 
     // 선 시작
     const startPaint = useCallback((event: MouseEvent) => {
@@ -123,7 +125,8 @@ export function VectorCanvas(props: CanvasProps){
                 y: firstMousePosition.y,
                 vx: mousePosition.x-firstMousePosition.x,
                 vy: mousePosition.y-firstMousePosition.y,
-                size: props.weight
+                weight: props.weight,
+                radius: props.radius
             }
             props.setNewPlanet(planet)
             setIsPainting(false);
