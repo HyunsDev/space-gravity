@@ -36,7 +36,7 @@ export default function simulator() {
     }
 
     loopId = setTimeout(function loop() {
-        const newPlanets: {[key: string]: Planet} = {...planets}
+        const newPlanets: {[key: string]: Planet} = planets
 
         // 주요 로직
         Object.keys(planets).forEach(planetId => {
