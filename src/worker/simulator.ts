@@ -39,9 +39,9 @@ export default function simulator() {
         const newPlanets: {[key: string]: Planet} = {...planets}
 
         // 주요 로직
-        for (let planetId of Object.keys(planets)) {
+        Object.keys(planets).forEach(planetId => {
             const planet = newPlanets[planetId]
-            if ( !planet ) continue // 삭제된 행성 계산 무시
+            if ( !planet ) return // 삭제된 행성 계산 무시
 
             newPlanets[planetId] =  {
                 weight: planet.weight,
@@ -79,7 +79,7 @@ export default function simulator() {
                 newPlanets[planetId].vx = newPlanets[planetId].vx + a.ax
                 newPlanets[planetId].vy = newPlanets[planetId].vy + a.ay
             }
-        }
+        })
 
         planets = newPlanets
         self.postMessage({kind: 'newPlanets', planets: newPlanets})
