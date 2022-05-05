@@ -15,10 +15,10 @@ import {
 } from "phosphor-react";
 import Logo from '../assets/lettering.png'
 import styled from "styled-components";
-import { useEffect, useRef, useState } from "react";
-// import simulator from "../worker/simulator";
-// import { Webworker } from "../worker/WebWorker";
+import { useEffect, useRef, useState, useContext } from "react";
 import { v4 as uuidv4 } from 'uuid';
+import FPSStats from "react-fps-stats";
+import { ToastContext } from "../context/toast";
 
 const LogoDiv = styled.div`
     position: fixed;
@@ -60,11 +60,10 @@ const Canvases = styled.div`
 `
 
 export default function Main() {
+    const toast = useContext(ToastContext)
+
     const [ newPlanet, setNewPlanet ] = useState<Planet>() // 새로운 행성 임시 저장
     const [ planets, setPlanets ] = useState<{[key: string]: Planet}>({}) // 현재의 행성 정보
-
-    const [ cursor, setCursor ] = useState({})
-
     const [ isPlay, setPlay ] = useState(false) // 재생 여부
     const [ speed, setSpeed ] = useState(3) // 스피드
     const [ radius, setRadius ] = useState(16) // 반지름
@@ -86,8 +85,10 @@ export default function Main() {
             break;
     }
 
+    // 시뮬레이터 수신
     useEffect(() => {
         _worker.current = new Worker('./simulator.js')
+        toast('시뮬레이터 연결 완료')
 
         // 메세지 수신
         _worker.current.onmessage = (msg:any) => {
@@ -101,7 +102,7 @@ export default function Main() {
                     break;
             }
         }
-    }, [])
+    }, [toast])
 
     // 새로운 행성 추가
     useEffect(() => {
@@ -115,7 +116,13 @@ export default function Main() {
     useEffect(() => {
         if (!_worker.current) return
         _worker.current.postMessage({kind: 'speedUpdate', speed})
-    }, [newPlanet, speed])
+    }, [speed])
+
+    // 재생, 일시정지
+    useEffect(() => {
+        if (!_worker.current) return
+        _worker.current.postMessage({kind: 'isPlay', isPlay})
+    }, [isPlay])
 
     return (
         <>  
@@ -140,6 +147,8 @@ export default function Main() {
             <LogoDiv>
                 <img src={Logo} alt='스페이스 그래비티 로고' />
             </LogoDiv>
+
+            <FPSStats />
             
             <Controller right={20} top={20} minWidth={200}>
                 <Labels>
