@@ -4,6 +4,7 @@
 let loopId
 let planets = {}
 let speed = 1
+let isPlay = true
 const SPEED_RADIUS = 200
 const SPACE_G = 100
 
@@ -27,10 +28,11 @@ const getGravitationalAcceleration = (planet, targetPlanet) => {
     }
 }
 
-loopId = setTimeout(function loop() {
+function simulationLoop() {
     const newPlanets = {...planets}
 
     // 주요 로직
+    planetLoop:
     for (let planetId of Object.keys(planets)) {
         const planet = newPlanets[planetId]
         if ( !planet ) continue // 삭제된 행성 계산 무시
@@ -53,6 +55,7 @@ loopId = setTimeout(function loop() {
                     newPlanets[targetPlanetId].weight = weight
                     newPlanets[targetPlanetId].radius = radius
                     delete newPlanets[planetId]
+                    continue planetLoop;
                 }
                 continue
             }
@@ -76,16 +79,21 @@ loopId = setTimeout(function loop() {
 
     planets = newPlanets
     self.postMessage({kind: 'newPlanets', planets: newPlanets})
+}
+
+loopId = setTimeout(function loop() {
+    simulationLoop()
     setTimeout(loop, 128/speed)
 }, 1024/speed)
-
-
 
 // IO
 self.addEventListener('message', event => {
     switch (event.data.kind) {
+        case 'ping':
+            self.postMessage({kind: 'pong'})
+            break
+
         case 'planetAdd':
-            // self.postMessage(event.data.planets)
             console.log(event.data.newPlanet.data)
             planets[event.data.newPlanet.id] = event.data.newPlanet.data
             break
@@ -99,6 +107,6 @@ self.addEventListener('message', event => {
             break
 
         default:
-            console.error('Wrong Command')
+            console.error(`Wrong Command: '${event.data.kind}' `)
     }
 })

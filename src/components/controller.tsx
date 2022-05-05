@@ -36,7 +36,7 @@ const ControllerDiv = styled.div<ControllerProps>`
     padding: 4px 8px;
     border-radius: 4px;
     background-color: rgba(44,48,62, 0.4);
-    backdrop-filter: blur(5px);
+    /* backdrop-filter: blur(5px); */
     width: fit-content;
     box-sizing: border-box;
     gap: 8px;

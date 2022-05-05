@@ -46,13 +46,6 @@ interface Planet {
     color?: string;
 }
 
-interface NewPlanet {
-    speed: number;
-    weight: number;
-    radius: number;
-    color: string;
-}
-
 const Canvases = styled.div`
     position: relative;
     width: 100vw;
@@ -64,7 +57,7 @@ export default function Main() {
 
     const [ newPlanet, setNewPlanet ] = useState<Planet>() // 새로운 행성 임시 저장
     const [ planets, setPlanets ] = useState<{[key: string]: Planet}>({}) // 현재의 행성 정보
-    const [ isPlay, setPlay ] = useState(false) // 재생 여부
+    const [ isPlay, setPlay ] = useState(true) // 재생 여부
     const [ speed, setSpeed ] = useState(3) // 스피드
     const [ radius, setRadius ] = useState(16) // 반지름
     const [ weight, setWeight ] = useState(32) // 무게
@@ -87,8 +80,9 @@ export default function Main() {
 
     // 시뮬레이터 수신
     useEffect(() => {
+        if (_worker.current) return
         _worker.current = new Worker('./simulator.js')
-        toast('시뮬레이터 연결 완료')
+        _worker.current.postMessage({kind: 'ping'}) // 테스트 메세지
 
         // 메세지 수신
         _worker.current.onmessage = (msg:any) => {
@@ -96,9 +90,10 @@ export default function Main() {
                 case 'newPlanets':
                     setPlanets(msg.data.planets)
                     break;
-            
+                case 'pong':
+                    toast('시뮬레이터 연결됨')
+                    break
                 default:
-                    
                     break;
             }
         }

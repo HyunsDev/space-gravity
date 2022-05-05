@@ -23,6 +23,14 @@ export function PlanetCanvas(props: CanvasProps){
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const requestAnimationRef = useRef<any>(null);
 
+    
+    useEffect(() => {
+        if (canvasRef.current) {
+            canvasRef.current.width=window.innerWidth
+            canvasRef.current.height=window.innerHeight
+        }
+    }, [])
+
     // 원 그리기
     const drawPlanet = useCallback((planet: Planet, context:CanvasRenderingContext2D ) => {
         context.beginPath()
@@ -37,7 +45,7 @@ export function PlanetCanvas(props: CanvasProps){
     }, [])
 
     // 선 그리기
-    const drawLine = (planet: Planet, context:CanvasRenderingContext2D ) => {
+    const drawLine = useCallback((planet: Planet, context:CanvasRenderingContext2D ) => {
           // 선 색깔
         context.lineJoin = 'round';	// 선 끄트머리(?)
         context.lineWidth = 1;		// 선 굵기
@@ -62,7 +70,7 @@ export function PlanetCanvas(props: CanvasProps){
         context.lineTo(planet.x, planet.y + planet.vy);
         context.closePath();
         context.stroke();
-    };
+    }, []);
 
     // 렌더링 함수
     const render = useCallback(() => {
@@ -80,7 +88,7 @@ export function PlanetCanvas(props: CanvasProps){
         })
 
         requestAnimationRef.current = requestAnimationFrame(render);
-    }, [drawPlanet, props.planets])
+    }, [drawLine, drawPlanet, props.planets])
 
     // 렌더링
     useEffect(() => {
@@ -91,7 +99,7 @@ export function PlanetCanvas(props: CanvasProps){
     })
 
     return (
-        <CanvasTag ref={canvasRef} width={window.innerWidth} height={window.innerHeight}>
+        <CanvasTag ref={canvasRef}>
         </CanvasTag>
     )
 }

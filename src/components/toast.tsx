@@ -10,7 +10,7 @@ interface ToastProps {
 const ToastDiv = styled.div<ToastProps>`
     display: flex;
     background-color: rgba(44,48,62, 0.4);
-    backdrop-filter: blur(5px);
+    /* backdrop-filter: blur(5px); */
     position: fixed;
     left: 50%;
     transform: translate(-50%, 0);
