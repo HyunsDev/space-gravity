@@ -46,6 +46,13 @@ interface Planet {
     color?: string;
 }
 
+interface NewPlanet {
+    speed: number;
+    weight: number;
+    radius: number;
+    color: string;
+}
+
 const Canvases = styled.div`
     position: relative;
     width: 100vw;
@@ -53,12 +60,15 @@ const Canvases = styled.div`
 `
 
 export default function Main() {
-    const [ newPlanet, setNewPlanet ] = useState<Planet>()
-    const [ planets, setPlanets ] = useState<{[key: string]: Planet}>({})
-    const [ isPlay, setPlay ] = useState(false)
-    const [ speed, setSpeed ] = useState(3)
-    const [ radius, setRadius ] = useState(16)
-    const [ weight, setWeight ] = useState(32)
+    const [ newPlanet, setNewPlanet ] = useState<Planet>() // 새로운 행성 임시 저장
+    const [ planets, setPlanets ] = useState<{[key: string]: Planet}>({}) // 현재의 행성 정보
+
+    const [ cursor, setCursor ] = useState({})
+
+    const [ isPlay, setPlay ] = useState(false) // 재생 여부
+    const [ speed, setSpeed ] = useState(3) // 스피드
+    const [ radius, setRadius ] = useState(16) // 반지름
+    const [ weight, setWeight ] = useState(32) // 무게
     const [ cursorMode, setCursorMode ] = useState<'create' | 'create-vector'>('create')
     const [ mouseVector, setMouseVector ] = useState({x: 0, y: 0})
     const _worker = useRef<any>(null)
@@ -77,7 +87,6 @@ export default function Main() {
     }
 
     useEffect(() => {
-        // _worker.current = Webworker(simulator)
         _worker.current = new Worker('./simulator.js')
 
         // 메세지 수신
@@ -92,10 +101,6 @@ export default function Main() {
                     break;
             }
         }
-
-        // return () => {
-        //     _worker.current.onmessage = null
-        // }
     }, [])
 
     // 새로운 행성 추가
@@ -132,10 +137,10 @@ export default function Main() {
                 weight={radius}
                 label={cursorLabel}
             />
-
             <LogoDiv>
                 <img src={Logo} alt='스페이스 그래비티 로고' />
             </LogoDiv>
+            
             <Controller right={20} top={20} minWidth={200}>
                 <Labels>
                     <Label name='현재 행성 수' value={Object.keys(planets).length}/>
