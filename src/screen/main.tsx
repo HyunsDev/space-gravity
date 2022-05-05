@@ -51,7 +51,6 @@ interface NewPlanet {
     weight: number;
     radius: number;
     color: string;
-
 }
 
 const Canvases = styled.div`

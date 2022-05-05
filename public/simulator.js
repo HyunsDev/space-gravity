@@ -5,16 +5,25 @@ let loopId
 let planets = {}
 let speed = 1
 const SPEED_RADIUS = 200
-const SPACE_G = 0.005
+const SPACE_G = 100
 
 const getSquaredDistance = (planet, targetPlanet) => {
-    return Math.round((planet.x - targetPlanet.x)**2 + (planet.y - targetPlanet.y)**2)
+    return (planet.x - targetPlanet.x)**2 + (planet.y - targetPlanet.y)**2
+}
+
+const getDistance = (planet, targetPlanet) => {
+    return Math.sqrt((planet.x - targetPlanet.x)**2 + (planet.y - targetPlanet.y)**2)
 }
 
 const getGravitationalAcceleration = (planet, targetPlanet) => {
+    const r = getDistance(planet, targetPlanet)
+    const g = SPACE_G * planet.weight * targetPlanet.weight / ( getSquaredDistance(planet, targetPlanet) )
+    const sinA = (targetPlanet.y - planet.y) / r
+    const cosA = (targetPlanet.x - planet.x) / r
+
     return {
-        ax: - SPACE_G * planet.weight * targetPlanet.weight * ( planet.x - targetPlanet.x ) / Math.abs((planet.x - targetPlanet.x))**3,
-        ay: - SPACE_G * planet.weight * targetPlanet.weight * ( planet.y - targetPlanet.y ) / Math.abs((planet.y - targetPlanet.y))**3
+        ax: g * cosA,
+        ay: g * sinA
     }
 }
 
@@ -26,17 +35,9 @@ loopId = setTimeout(function loop() {
         const planet = newPlanets[planetId]
         if ( !planet ) continue // 삭제된 행성 계산 무시
 
-        newPlanets[planetId] =  {
-            weight: planet.weight,
-            radius: planet.radius,
-            x: planet.x + planet.vx / SPEED_RADIUS,
-            y: planet.y + planet.vy / SPEED_RADIUS,
-            vx: planet.vx,
-            vy: planet.vy,
-            color: planet.color
-        }
-
-        for (let [targetPlanetId, targetPlanet] of Object.entries(newPlanets)) { // 충돌 감지 & 중력
+        
+        // 다른 사물간의 상호작용
+        for (let [targetPlanetId, targetPlanet] of Object.entries(newPlanets)) {
             if (targetPlanetId === planetId) continue
 
             // 충돌 감지
@@ -60,6 +61,16 @@ loopId = setTimeout(function loop() {
             const a = getGravitationalAcceleration(planet, targetPlanet)
             newPlanets[planetId].vx = newPlanets[planetId].vx + a.ax
             newPlanets[planetId].vy = newPlanets[planetId].vy + a.ay
+        }
+
+        newPlanets[planetId] =  {
+            weight: planet.weight,
+            radius: planet.radius,
+            x: planet.x + planet.vx / SPEED_RADIUS,
+            y: planet.y + planet.vy / SPEED_RADIUS,
+            vx: planet.vx,
+            vy: planet.vy,
+            color: planet.color
         }
     }
 
