@@ -1,16 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import styled from "styled-components"
 
-interface Planet {
-    weight: number;
-    radius: number;
-    x: number;
-    y: number;
-    vx: number;
-    vy: number;
-    color?: string;
-}
-
 interface CanvasProps {
     weight: number;
     radius: number;
@@ -31,6 +21,8 @@ const CanvasTag = styled.canvas`
     top: 0;
 `
 
+let paintTimer: NodeJS.Timeout | null = null;
+
 export function VectorCanvas(props: CanvasProps){
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const requestAnimationRef = useRef<any>(null);
@@ -38,17 +30,24 @@ export function VectorCanvas(props: CanvasProps){
     const [ mousePosition, setMousePosition ] = useState<MousePos | undefined>(undefined)
     const [ isPainting, setIsPainting ] = useState(false);
 
-    const getMousePos = (event: MouseEvent): MousePos | undefined => {
+    useEffect(() => {
+        if (canvasRef.current) {
+            canvasRef.current.width=window.innerWidth
+            canvasRef.current.height=window.innerHeight
+        }
+    }, [])
+
+    const getMousePos = useCallback((event: MouseEvent): MousePos | undefined => {
         if (!canvasRef.current) return;
         const canvas: HTMLCanvasElement = canvasRef.current;
         return {
           x: event.pageX - canvas.offsetLeft,
           y: event.pageY - canvas.offsetTop
         };
-    };
+    }, []);
 
     // 선 그리기
-    const drawLine = (originalMousePosition: MousePos, newMousePosition: MousePos) => {
+    const drawLine = useCallback((originalMousePosition: MousePos, newMousePosition: MousePos) => {
         if (!canvasRef.current) return;
         const canvas: HTMLCanvasElement = canvasRef.current;
         const context = canvas.getContext('2d');
@@ -65,7 +64,7 @@ export function VectorCanvas(props: CanvasProps){
 
             context.stroke();
         }
-    };
+    }, []);
 
     // 원 그리기
     const drawCircle = useCallback((mousePos: MousePos) => {
@@ -76,14 +75,11 @@ export function VectorCanvas(props: CanvasProps){
         
         context.beginPath()
         context.arc(mousePos.x, mousePos.y, props.radius, 0, 2*Math.PI) 
-
         context.fillStyle = '#1C1311'
         context.fill()
-    
         context.strokeStyle = "#f9951c";
         context.lineWidth = 1;
         context.stroke()
-
     }, [props.radius])
 
     // 선 시작
@@ -95,21 +91,21 @@ export function VectorCanvas(props: CanvasProps){
         setIsPainting(true);
         setMousePosition(mousePos);
         setFirstMousePosition(mousePos)
-    }, [props]);
+    }, [getMousePos, props]);
 
-    const paint = useCallback(
-        (event: MouseEvent) => {
-            event.preventDefault();
-            if (isPainting) {
-                const newMousePosition = getMousePos(event);
-                if (firstMousePosition && newMousePosition) {
-                    props.setMouseVector({x: newMousePosition.x-firstMousePosition.x, y:newMousePosition.y-firstMousePosition.y})
-                    setMousePosition(newMousePosition)
-                }
+    const paint = useCallback((event: MouseEvent) => {
+        event.preventDefault();
+        if (!isPainting) return
+        if (paintTimer) return
+        paintTimer = setTimeout(() => {
+            const newMousePosition = getMousePos(event);
+            if (firstMousePosition && newMousePosition) {
+                props.setMouseVector({x: newMousePosition.x-firstMousePosition.x, y:newMousePosition.y-firstMousePosition.y})
+                setMousePosition(newMousePosition)
             }
-        },
-        [firstMousePosition, isPainting, props]
-    );
+            paintTimer = null
+        }, 16)
+    },[firstMousePosition, getMousePos, isPainting, props]);
     
     const exitPaint = useCallback(() => {
         props.setCursorMode('create')
@@ -149,7 +145,7 @@ export function VectorCanvas(props: CanvasProps){
         }
 
         requestAnimationRef.current = requestAnimationFrame(render);
-    }, [drawCircle, firstMousePosition, isPainting, mousePosition])
+    }, [drawCircle, drawLine, firstMousePosition, isPainting, mousePosition])
 
     // 렌더링
     useEffect(() => {
@@ -176,7 +172,7 @@ export function VectorCanvas(props: CanvasProps){
     }, [exitPaint, paint, startPaint])
 
     return (
-        <CanvasTag ref={canvasRef} width={window.innerWidth} height={window.innerHeight}>
+        <CanvasTag ref={canvasRef}>
         </CanvasTag>
     )
 }

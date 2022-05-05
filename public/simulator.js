@@ -82,9 +82,16 @@ function simulationLoop() {
 }
 
 loopId = setTimeout(function loop() {
-    simulationLoop()
-    setTimeout(loop, 128/speed)
-}, 1024/speed)
+    isPlay && simulationLoop()
+    setTimeout(loop, Math.round(16 / speed))
+}, Math.round(16 / speed))
+
+const reset = () => {
+    planets = {}
+}
+
+
+
 
 // IO
 self.addEventListener('message', event => {
@@ -104,6 +111,14 @@ self.addEventListener('message', event => {
 
         case 'stopSimulate':
             clearInterval(loopId)
+            break
+
+        case 'isPlay':
+            isPlay = event.data.isPlay
+            break
+
+        case 'reset':
+            reset()
             break
 
         default:
