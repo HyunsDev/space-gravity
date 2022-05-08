@@ -6,8 +6,8 @@ let loopTimer
 let planets = {}
 let speed = 1
 let isPlay = true
-const SPEED_RADIUS = 500
-const SPACE_G = 100
+let speedRate = 500
+let spaceG = 100
 
 const getSquaredDistance = (planet, targetPlanet) => {
     return (planet.x - targetPlanet.x)**2 + (planet.y - targetPlanet.y)**2
@@ -19,7 +19,7 @@ const getDistance = (planet, targetPlanet) => {
 
 const getGravitationalAcceleration = (planet, targetPlanet) => {
     const r = getDistance(planet, targetPlanet)
-    const g = SPACE_G * planet.weight * targetPlanet.weight / ( getSquaredDistance(planet, targetPlanet) )
+    const g = spaceG * planet.mass * targetPlanet.mass / ( getSquaredDistance(planet, targetPlanet) )
     const sinA = (targetPlanet.y - planet.y) / r
     const cosA = (targetPlanet.x - planet.x) / r
 
@@ -46,15 +46,15 @@ function simulationLoop() {
 
             // 충돌 감지
             if (getSquaredDistance(planet, targetPlanet) < (planet.radius + targetPlanet.radius)**2) {
-                const weight = newPlanets[planetId].weight + newPlanets[targetPlanetId].weight
+                const mass = newPlanets[planetId].mass + newPlanets[targetPlanetId].mass
                 const radius = Math.round(Math.sqrt(newPlanets[planetId].radius**2 + newPlanets[targetPlanetId].radius**2))
 
-                if (planet.weight >= targetPlanet.weight && !targetPlanet.isFixed) {
-                    newPlanets[planetId].weight = weight
+                if (planet.mass >= targetPlanet.mass && !targetPlanet.isFixed) {
+                    newPlanets[planetId].mass = mass
                     newPlanets[planetId].radius = radius
                     delete newPlanets[targetPlanetId]
                 } else {
-                    newPlanets[targetPlanetId].weight = weight
+                    newPlanets[targetPlanetId].mass = mass
                     newPlanets[targetPlanetId].radius = radius
                     delete newPlanets[planetId]
                     continue planetLoop;
@@ -70,8 +70,8 @@ function simulationLoop() {
 
         newPlanets[planetId] =  {
             ...planets[planetId],
-            x: planet.x + planet.vx / SPEED_RADIUS,
-            y: planet.y + planet.vy / SPEED_RADIUS,
+            x: planet.x + planet.vx / speedRate,
+            y: planet.y + planet.vy / speedRate,
         }
     }
 
@@ -99,6 +99,8 @@ const reset = () => {
     loopId = 0
     loopTimer && clearInterval(loopTimer)
     loopTimer = setInterval(loop, Math.round(16.6 / speed))
+    self.postMessage({kind: 'spaceG', spaceG: spaceG})
+    self.postMessage({kind: 'speedRate', speedRate: speedRate})
 }
 
 // IO
@@ -110,8 +112,8 @@ self.addEventListener('message', event => {
             break
 
         case 'planetAdd':
-            console.table({id: event.data.newPlanet.id, ...event.data.newPlanet.data})
             planets[event.data.newPlanet.id] = event.data.newPlanet.data
+            self.postMessage({kind: 'newPlanets', planets: planets})
             break
 
         case 'planetList':
@@ -134,6 +136,35 @@ self.addEventListener('message', event => {
 
         case 'reset':
             reset()
+            break
+
+        case 'updateSpaceG':
+            spaceG = event.data.value
+            console.log('updateSpaceG', spaceG)
+            break
+
+        case 'updateSpeedRate':
+            speedRate = event.data.value
+            console.log('updateSpeedRate', speedRate)
+            break
+
+        case 'SquawkYourParrot':
+            self.postMessage({kind: 'Squawk', data: {
+                loopId,
+                planets,
+                speed,
+                isPlay,
+                speedRate,
+                spaceG
+            }})
+            console.log( {
+                loopId,
+                planets,
+                speed,
+                isPlay,
+                speedRate,
+                spaceG
+            })
             break
 
         default:

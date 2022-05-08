@@ -8,7 +8,7 @@ const NewPlanetProvider: React.FC<React.ReactNode> = ({children}) => {
     const [isCreating, setCreating] = useState(false)
     const [speed, setSpeed] = useState(3)
     const [radius, setRadius] = useState(16)
-    const [weight, setWeight] = useState(32)
+    const [mass, setMass] = useState(32)
 
     return (
         <NewPlanetContext.Provider

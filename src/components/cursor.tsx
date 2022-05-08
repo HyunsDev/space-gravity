@@ -116,5 +116,5 @@ export function Cursor(props: CursorProps) {
 }
 
 Cursor.defaultProps = {
-    weight: 32
+    mass: 32
 }

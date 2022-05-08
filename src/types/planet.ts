@@ -1,5 +1,5 @@
 interface Planet {
-    weight: number;
+    mass: number;
     radius: number;
     x: number;
     y: number;
@@ -12,14 +12,14 @@ interface Planet {
 interface NewPlanetOption {
     color: string;
     isFixed: boolean;
-    weight: number;
+    mass: number;
     radius: number;
 }
 
 interface UpdateNewPlanetOption {
     color?: string;
     isFixed?: boolean;
-    weight?: number;
+    mass?: number;
     radius?: number;
 }
 
