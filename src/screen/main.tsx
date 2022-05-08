@@ -1,13 +1,13 @@
-import { Controller, Button, Label, Labels, VectorCanvas, Cursor, PlanetCanvas } from "../components";
-import { Statistics } from "../components/main/interface";
+import { Controller, Button, Label, Labels, VectorCanvas, Cursor, PlanetCanvas, GridCanvas, Move } from "../components";
+import { Statistics, Setting } from "../components/main/interface";
 import { 
     Play,
     Pause,
     Cursor as CursorIcon,
     CaretRight,
     CaretLeft,
-    HandPointing,
-    ArrowUpRight,
+    ArrowsOutCardinal,
+    PlusCircle,
     Plus,
     Minus,
     ArrowsOut,
@@ -21,13 +21,12 @@ import { v4 as uuidv4 } from 'uuid';
 import FPSStats from "react-fps-stats";
 import { ToastContext } from "../context/toast";
 
+import type { CursorMode, Planet, NewPlanetOption, UpdateNewPlanetOption, DrawerOption, UpdateDrawerOption } from "../types/";
+
 // 상수
 const PLANET_MIN_WEIGHT = 4
 const PLANET_MIN_RADIUS = 4
-
-
-
-
+const WHEEL_STEP = 0.25
 
 const LogoDiv = styled.div`
     position: fixed;
@@ -45,16 +44,6 @@ const LogoDiv = styled.div`
     }
 `
 
-interface Planet {
-    weight: number;
-    radius: number;
-    x: number;
-    y: number;
-    vx: number;
-    vy: number;
-    color?: string;
-}
-
 const Canvases = styled.div`
     position: relative;
     width: 100vw;
@@ -63,29 +52,95 @@ const Canvases = styled.div`
 
 export default function Main() {
     const toast = useContext(ToastContext)
-    const [ newPlanet, setNewPlanet ] = useState<Planet>() // 새로운 행성 임시 저장
-    const [ planets, setPlanets ] = useState<{[key: string]: Planet}>({}) // 현재의 행성 정보
     const _worker = useRef<any>(null)
+    const [ planets, setPlanets ] = useState<{[key: string]: Planet}>({}) // 현재의 행성 정보
+
+    const newPlanetOptionRef = useRef<NewPlanetOption>({
+        color: '',
+        isFixed: false,
+        radius: 8,
+        weight: 8
+    })
+    const [ newPlanetOption, setNewPlanetOption ] = useState(newPlanetOptionRef.current)
+    
+    const drawerOptionRef = useRef<DrawerOption>({
+        isShowPlanetVector: true,
+        isShowPlanetInfo: false,
+        isShowGrid: true,
+        gridBrightness: 15,
+        gridStep: 50,
+        isShowFPS_UPS: false,
+        DEBUG_isShowPlanetInfo: false,
+        DEBUS_isShowFPS: false,
+    })
+    const [ drawerOption, setDrawerOption ] = useState(drawerOptionRef.current)
+
+    const [ screenPosition, setScreenPosition ] = useState({x: 0, y: 0})
+    const [ screenZoom, setScreenZoom ] = useState(1)
 
     const [ isPlay, setPlay ] = useState(true) // 재생 여부
     const [ speed, setSpeed ] = useState(1) // 스피드
-    const [ radius, setRadius ] = useState(8) // 반지름
-    const [ weight, setWeight ] = useState(16) // 무게
-    const [ cursorMode, setCursorMode ] = useState<'create' | 'create-vector'>('create') // 커서 모드
+    const [ cursorMode, setCursorMode ] = useState<CursorMode>('create') // 커서 모드
     const [ mouseVector, setMouseVector ] = useState({x: 0, y: 0})
 
+    const fps = useRef(0)
+    const ups = useRef(0)
+
+    // 커서 라벨 지정
     let cursorLabel
     switch (cursorMode) {
         case 'create':
-            cursorLabel = `질량 ${weight}`
+            cursorLabel = [`질량 ${newPlanetOption.weight}`]
+            if (newPlanetOption.isFixed) cursorLabel.push(`고정`)
             break;
         case 'create-vector':
-            cursorLabel = `벡터 (${mouseVector.x}, ${mouseVector.y})`
+            cursorLabel = [`속도 (${mouseVector.x}, ${mouseVector.y})`]
+            if (newPlanetOption.isFixed) cursorLabel = ['고정됨']
             break
 
         default:
             break;
     }
+
+    // updateNewPlanetOption
+    const updateNewPlanetOption = useCallback((newOption: UpdateNewPlanetOption) => {
+        const _newOption = {
+            ...newPlanetOptionRef.current,
+            ...newOption
+        }
+
+        newPlanetOptionRef.current = _newOption
+        setNewPlanetOption(_newOption)
+    }, [])
+
+    // updateNewPlanetOption
+    const updateDrawerOption = useCallback((newOption: UpdateDrawerOption) => {
+        const _newOption = {
+            ...drawerOptionRef.current,
+            ...newOption
+        }
+
+        drawerOptionRef.current = _newOption
+        setDrawerOption(_newOption)
+    }, [])
+
+    // 백그라운드
+    useEffect(() => {
+        const focus = () => {
+            toast.off()
+        }
+
+        const blur = () => {
+            toast.on('화면에 포커스가 없습니다.\n키보드 콤보를 사용하려면 이곳을 클릭하세요')
+        }
+
+        window.addEventListener("focus", focus);
+        window.addEventListener("blur", blur);
+        return () => {
+            document.body.removeEventListener("focus", focus);
+            document.body.removeEventListener("blur", blur);
+        }
+    }, [toast])
 
     // 시뮬레이터
     useEffect(() => {
@@ -102,19 +157,21 @@ export default function Main() {
                 case 'pong':
                     toast('시뮬레이터 연결됨')
                     break
+                case 'ups':
+                    ups.current = msg.data.ups
+                    break
                 default:
                     break;
             }
         }
     }, [toast])
 
+
     // 새로운 행성 추가
-    useEffect(() => {
+    const addNewPlanet = useCallback((newPlanet) => {
         if (!_worker.current) return
-        if (!newPlanet) return
         _worker.current.postMessage({kind: 'planetAdd', newPlanet: { id: uuidv4(), data: newPlanet }})
-        setNewPlanet(undefined)
-    }, [newPlanet])
+    }, [])
 
     // 속도 변경
     useEffect(() => {
@@ -126,15 +183,16 @@ export default function Main() {
     const changeRadius = useCallback((newRadius: number) => {
         if (!_worker.current) return
         if (newRadius >= PLANET_MIN_RADIUS)
-        setRadius(newRadius)
-    }, [])
+        updateNewPlanetOption({radius: newRadius})
+    }, [updateNewPlanetOption])
 
     // 무게 변경
     const changeWeight = useCallback((newWeight: number) => {
         if (!_worker.current) return
         if (newWeight >= PLANET_MIN_WEIGHT)
-        setWeight(newWeight)
-    }, [])
+        // setWeight(newWeight)
+        updateNewPlanetOption({weight: newWeight})
+    }, [updateNewPlanetOption])
 
     // 재생, 일시정지
     const pauseToggle = useCallback(() => {
@@ -148,94 +206,227 @@ export default function Main() {
     const reset = useCallback(() => {
         if (!_worker.current) return
         _worker.current.postMessage({kind: 'reset'})
+        // _worker.current.terminate()
+        // _worker.current = new Worker('./simulator.js')
+        // _worker.current.postMessage({kind: 'ping'})
     }, [])
 
     // 초기화
     useEffect(() => {
         reset()
+        toast('행성 정보 초기화')
         return reset
-    }, [reset])
+    }, [reset, toast])
 
+    // 키보드 입력 이벤트
     const keyPress = useCallback((e:any) => {
         switch(e.key) {
-            case '=':
-                changeWeight(weight+4)
+            case '=': // 질량, 크기 증가
+                changeRadius(newPlanetOption.radius+4)
+                changeWeight(newPlanetOption.weight+4)
                 break
 
-            case '-':
-                changeWeight(weight-4)
+            case '-': // 질량, 크기 감소
+                changeRadius(newPlanetOption.radius-4)
+                changeWeight(newPlanetOption.weight-4)
                 break
 
-            case '+':
-                changeRadius(radius+4)
+            case '+': // 크기 증가
+                changeRadius(newPlanetOption.radius+4)
                 break
 
-            case '_':
-                changeRadius(radius-4)
+            case '_': // 크기 감소
+                changeRadius(newPlanetOption.radius-4)
+                break
+
+            case '.':
+            case '>':
+                speed+0.5 <= 3 && setSpeed(speed+0.5)
+                break
+
+            case ',':
+            case '<':
+                speed-0.5 > 0 && setSpeed(speed-0.5)
+                break
+
+            case 'r':
+                reset()
+                break
+
+            case 'v':
+                setCursorMode('move')
+                break
+
+            case 'c':
+                setCursorMode('create')
                 break
 
             default:
                 break
         }
-    }, [changeRadius, changeWeight, radius, weight])
+    }, [changeRadius, changeWeight, newPlanetOption.radius, newPlanetOption.weight, reset, speed])
+
+    const keydown = useCallback((e:KeyboardEvent) => {
+        switch(e.key) {
+            case 'Control':
+                updateNewPlanetOption({isFixed: true})
+                break
+            
+            case 'ArrowUp':
+            case 'w':
+                setScreenPosition({x: screenPosition.x, y: screenPosition.y + 10})
+                break
+
+            case 'ArrowDown':
+            case 's':
+                setScreenPosition({x: screenPosition.x, y: screenPosition.y - 10})
+                break
+
+            case 'ArrowLeft':
+            case 'a':
+                setScreenPosition({y: screenPosition.y, x: screenPosition.x + 10})
+                break
+
+            case 'ArrowRight':
+            case 'd':
+                setScreenPosition({y: screenPosition.y, x: screenPosition.x - 10})
+                break
+
+
+            default: 
+                break
+        }
+    }, [screenPosition.x, screenPosition.y, updateNewPlanetOption])
+
+    const keyup = useCallback((e:any) => {
+        switch(e.key) {
+            case 'Control':
+                updateNewPlanetOption({isFixed: false})
+                break
+
+            default: 
+                break
+        }
+    }, [updateNewPlanetOption])
+
+    const wheel = useCallback((e:WheelEvent) => {
+        if (e.deltaY < 0) {
+            if (screenZoom + WHEEL_STEP > 8) return
+            setScreenZoom(screenZoom + WHEEL_STEP)
+            toast(`확대 ${(screenZoom + WHEEL_STEP) * 100}%`)
+        } else {
+            if (screenZoom - WHEEL_STEP <= 0) return
+            setScreenZoom(screenZoom - WHEEL_STEP)
+            toast(`확대 ${(screenZoom - WHEEL_STEP) * 100}%`)
+        }
+    }, [screenZoom, toast])
 
     // 이벤트
     useEffect(() => {
         document.addEventListener('keypress', keyPress)
+        document.addEventListener('keydown', keydown)
+        document.body.addEventListener('keyup', keyup)
+        window.addEventListener('wheel', wheel)
 
         return () => {
             document.removeEventListener('keypress', keyPress)
+            document.removeEventListener('keydown', keydown)
+            document.body.removeEventListener('Keyup', keyup)
+            window.removeEventListener('wheel', wheel)
         }
-    }, [keyPress])
+    }, [keyPress, keydown, keyup, wheel])
 
     return (
         <>  
             <Canvases>
-                <VectorCanvas
-                    weight={weight}
-                    radius={radius}
-                    setCursorMode={setCursorMode}
-                    setMouseVector={setMouseVector}
-                    setNewPlanet={setNewPlanet}
-                ></VectorCanvas>
+                {
+                    (drawerOption.isShowGrid) &&
+                    <GridCanvas 
+                        drawerOption={drawerOption}
+                        screenPosition={screenPosition}
+                        screenZoom={screenZoom}
+                    />
+                }
+                
+
+                {
+                    (cursorMode === 'create' || cursorMode === 'create-vector') &&
+                    <VectorCanvas
+                        newPlanetOption={newPlanetOption}
+                        setCursorMode={setCursorMode}
+                        setMouseVector={setMouseVector}
+                        addNewPlanet={addNewPlanet}
+                        screenPosition={screenPosition}
+                        screenZoom={screenZoom}
+                    />
+                }
+
+                {
+                    (cursorMode === 'move') &&
+                    <Move
+                        setScreenPosition={setScreenPosition}
+                        screenPosition={screenPosition}
+                        screenZoom={screenZoom}
+                    />
+                }
 
                 <PlanetCanvas
                     planets={planets}
-                ></PlanetCanvas>
+                    fps={fps}
+                    drawerOption={drawerOption}
+                    screenPosition={screenPosition}
+                    screenZoom={screenZoom}
+                />
             </Canvases>
-            <Cursor
-                cursorMode={cursorMode}
-                radius={radius}
-                label={cursorLabel}
-            />
+            {
+                (cursorMode === 'create' || cursorMode === 'create-vector') &&
+                <Cursor
+                    NewPlanetOption={newPlanetOption}
+                    cursorMode={cursorMode}
+                    radius={newPlanetOption.radius}
+                    label={cursorLabel}
+                    screenZoom={screenZoom}
+                />
+            }
             <LogoDiv>
                 <img src={Logo} alt='스페이스 그래비티 로고' />
             </LogoDiv>
 
-            <FPSStats />
+            {drawerOption.DEBUS_isShowFPS && <FPSStats />}
             <Statistics 
-                items={{
-                    '현재 행성 수': Object.keys(planets).length
-                }}
+                fps_ups={`${fps.current} / ${ups.current}`}
+                planetQuota={Object.keys(planets).length}
+                drawerOption={drawerOption}
             />
+            <Setting 
+                updateDrawerOption={updateDrawerOption}
+                drawerOption={drawerOption}
+            />
+            
+            <Controller left={20} bottom={140}>
+                <Button content={<CursorIcon />} tooltip='선택' onClick={() => setCursorMode('select')} />
+                <Button content={<ArrowsOutCardinal />} tooltip='이동 [ v ]' onClick={() => setCursorMode('move')} />
+                <Button content={<PlusCircle />} tooltip='생성 [ c ]' onClick={() => setCursorMode('create')} />
+            </Controller>
+
             <Controller left={20} bottom={100}>
-                <Button content={<ArrowsIn />} tooltip='작게' onClick={() => changeRadius(radius-4)} />
-                <Button content={`${radius}`} tooltip='반지름' onClick={() => null} />
-                <Button content={<ArrowsOut />} tooltip='크게' onClick={() => changeRadius(radius+4)} />
+                <Button content={<ArrowsIn />} tooltip='작게 [ Shift - ]' onClick={() => changeRadius(newPlanetOption.radius-4)} />
+                <Button content={`${newPlanetOption.radius}`} tooltip='반지름' onClick={() => null} />
+                <Button content={<ArrowsOut />} tooltip='크게 [ Shift + ]' onClick={() => changeRadius(newPlanetOption.radius+4)} />
             </Controller>
 
             <Controller left={20} bottom={60}>
-                <Button content={<Minus />} tooltip='가볍게' onClick={() => changeWeight(weight-4)} />
-                <Button content={`${weight}`} tooltip='질량' onClick={() => null} />
-                <Button content={<Plus />} tooltip='무겁게' onClick={() => changeWeight(weight+4)} />
+                <Button content={<Minus />} tooltip='가볍게 [ - ]' onClick={() => changeWeight(newPlanetOption.weight-4)} />
+                <Button content={`${newPlanetOption.weight}`} tooltip='질량' onClick={() => null} />
+                <Button content={<Plus />} tooltip='무겁게 [ + ]' onClick={() => changeWeight(newPlanetOption.weight+4)} />
             </Controller>
 
             <Controller left={20} bottom={20}>
                 <Button content={isPlay ? <Pause /> : <Play />} tooltip={isPlay ? '일시정지' : '재생'} onClick={pauseToggle} />
-                <Button content={<ArrowClockwise />} tooltip='초기화' onClick={() => reset()} />
-                <Button content={<CaretLeft  />} tooltip='느리게' onClick={() => speed-0.5 > 0 && setSpeed(speed-0.5)} />
+                <Button content={<ArrowClockwise />} tooltip='초기화 [ r ]' onClick={() => reset()} />
+                <Button content={<CaretLeft  />} tooltip='느리게 [ < ]' onClick={() => speed-0.5 > 0 && setSpeed(speed-0.5)} />
                 <Button content={`${speed}x`} tooltip='시뮬레이션 속도' onClick={() => console.log('play')} />
-                <Button content={<CaretRight  />} tooltip='빠르게' onClick={() => speed+0.5 < 4 && setSpeed(speed+0.5)} />
+                <Button content={<CaretRight  />} tooltip='빠르게 [ > ]' onClick={() => speed+0.5 < 4 && setSpeed(speed+0.5)} />
             </Controller>
         </>
     )

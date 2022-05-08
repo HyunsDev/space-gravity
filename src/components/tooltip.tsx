@@ -15,13 +15,15 @@ const ToolTipBox = styled.div`
     font-size: 12px;
     left: 50%;
     transform: translate(-50%, 0%);
-    white-space:nowrap; 
+    white-space: nowrap; 
+    pointer-events: none;
 
     &::after {
         content: '';
         position: absolute;
         border-style: solid;
         border-width: 5px;
+        pointer-events: none;
     }
 `
 

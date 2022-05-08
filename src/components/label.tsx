@@ -1,12 +1,32 @@
 import styled from "styled-components"
 
+interface LabelsProps {
+    children: React.ReactNode;
+}
+
+const LabelsDiv = styled.div`
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+    padding: 2px 0px;
+`
+
+export function Labels(props: LabelsProps) {
+    return (
+        <LabelsDiv>
+            { props.children }
+        </LabelsDiv>
+    )
+}
+
 interface LabelProps {
     name: string;
     value: string | number;
     icon?: React.ReactNode;
 }
 
-const ButtonDiv = styled.div`
+const ButtonDivver = styled.div`
     border-radius: 4px;
     transition: 200ms;
     box-sizing: border-box;
@@ -19,7 +39,7 @@ const ButtonDiv = styled.div`
     font-size: 14px;
 `
 
-const ButtonDiv2 = styled.div`
+const ButtonDiv = styled.div`
     display: flex;
     align-items: center;
     gap: 8px;
@@ -27,28 +47,9 @@ const ButtonDiv2 = styled.div`
 
 export function Label(props: LabelProps) {
     return (
-        <ButtonDiv>
-            <ButtonDiv2>{props.icon} {props.name}</ButtonDiv2>
-            <ButtonDiv2>{props.value}</ButtonDiv2>
-        </ButtonDiv>
-    )
-}
-
-interface LabelsProps {
-    children: React.ReactNode;
-}
-
-const LabelsDiv = styled.div`
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    gap: 8px;
-`
-
-export function Labels(props: LabelsProps) {
-    return (
-        <LabelsDiv>
-            { props.children }
-        </LabelsDiv>
+        <ButtonDivver>
+            <ButtonDiv>{props.icon} {props.name}</ButtonDiv>
+            <ButtonDiv>{props.value}</ButtonDiv>
+        </ButtonDivver>
     )
 }

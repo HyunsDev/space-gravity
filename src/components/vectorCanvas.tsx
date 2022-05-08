@@ -1,12 +1,16 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState, useContext } from "react"
 import styled from "styled-components"
+import { ToastContext } from "../context/toast";
+
+import type { NewPlanetOption, Planet } from '../types'
 
 interface CanvasProps {
-    weight: number;
-    radius: number;
+    newPlanetOption: NewPlanetOption
     setCursorMode: Function;
     setMouseVector: Function;
-    setNewPlanet: Function;
+    addNewPlanet: (planet:Planet) => void;
+    screenPosition: {x: number, y: number}
+    screenZoom: number
 }
 
 interface MousePos {
@@ -24,6 +28,7 @@ const CanvasTag = styled.canvas`
 let paintTimer: NodeJS.Timeout | null = null;
 
 export function VectorCanvas(props: CanvasProps){
+    const toast = useContext(ToastContext)
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const requestAnimationRef = useRef<any>(null);
     const [ firstMousePosition, setFirstMousePosition ] = useState<MousePos | undefined>(undefined)
@@ -31,9 +36,17 @@ export function VectorCanvas(props: CanvasProps){
     const [ isPainting, setIsPainting ] = useState(false);
 
     useEffect(() => {
-        if (canvasRef.current) {
-            canvasRef.current.width=window.innerWidth
-            canvasRef.current.height=window.innerHeight
+        const resize = () => {
+            if (canvasRef.current) {
+                canvasRef.current.width=window.innerWidth
+                canvasRef.current.height=window.innerHeight
+            }
+        }
+
+        resize()
+        window.addEventListener('resize', resize)
+        return () => {
+            window.removeEventListener('resize', resize)
         }
     }, [])
 
@@ -49,6 +62,8 @@ export function VectorCanvas(props: CanvasProps){
     // 선 그리기
     const drawLine = useCallback((originalMousePosition: MousePos, newMousePosition: MousePos) => {
         if (!canvasRef.current) return;
+        if (props.newPlanetOption.isFixed) return;
+
         const canvas: HTMLCanvasElement = canvasRef.current;
         const context = canvas.getContext('2d');
 
@@ -64,7 +79,7 @@ export function VectorCanvas(props: CanvasProps){
 
             context.stroke();
         }
-    }, []);
+    }, [props.newPlanetOption.isFixed]);
 
     // 원 그리기
     const drawCircle = useCallback((mousePos: MousePos) => {
@@ -74,16 +89,18 @@ export function VectorCanvas(props: CanvasProps){
         if(!context) return
         
         context.beginPath()
-        context.arc(mousePos.x, mousePos.y, props.radius, 0, 2*Math.PI) 
-        context.fillStyle = '#1C1311'
+        context.arc(mousePos.x, mousePos.y, props.newPlanetOption.radius*props.screenZoom, 0, 2*Math.PI) 
+        context.fillStyle = props.newPlanetOption.isFixed ? '#f93d1c33' : '#f9951c33'
         context.fill()
-        context.strokeStyle = "#f9951c";
+        context.strokeStyle = props.newPlanetOption.isFixed ? '#f93d1c' : "#f9951c";
         context.lineWidth = 1;
         context.stroke()
-    }, [props.radius])
+    }, [props.newPlanetOption.isFixed, props.newPlanetOption.radius, props.screenZoom])
 
     // 선 시작
     const startPaint = useCallback((event: MouseEvent) => {
+        toast.on('행성 생성을 취소하려면 ESC를 누르세요')
+
         props.setCursorMode('create-vector')
         props.setMouseVector({x: 0, y:0})
         const mousePos = getMousePos(event);
@@ -91,7 +108,7 @@ export function VectorCanvas(props: CanvasProps){
         setIsPainting(true);
         setMousePosition(mousePos);
         setFirstMousePosition(mousePos)
-    }, [getMousePos, props]);
+    }, [getMousePos, props, toast]);
 
     const paint = useCallback((event: MouseEvent) => {
         event.preventDefault();
@@ -106,6 +123,31 @@ export function VectorCanvas(props: CanvasProps){
             paintTimer = null
         }, 16)
     },[firstMousePosition, getMousePos, isPainting, props]);
+
+    const cancelPaint = useCallback(() => {
+        props.setCursorMode('create')
+        if (!canvasRef.current) return;
+        const canvas: HTMLCanvasElement = canvasRef.current;
+        const context = canvas.getContext('2d');
+        if(!context) return
+
+        if (isPainting) {
+            if (!mousePosition || !firstMousePosition) return
+            toast.off()
+            setIsPainting(false);
+            context.clearRect(0, 0, canvas.width, canvas.height);
+        }
+    }, [firstMousePosition, isPainting, mousePosition, props, toast])
+    
+    useEffect(() => {
+        const cancel = (e:KeyboardEvent) => {
+            if (e.key === 'Escape') cancelPaint()
+        }
+        document.addEventListener('keydown', cancel)
+        return () => {
+            document.removeEventListener('keydown', cancel)
+        }
+    }, [cancelPaint])
     
     const exitPaint = useCallback(() => {
         props.setCursorMode('create')
@@ -116,19 +158,21 @@ export function VectorCanvas(props: CanvasProps){
 
         if (isPainting) {
             if (!mousePosition || !firstMousePosition) return
+            toast.off()
             const planet = {
-                x: firstMousePosition.x,
-                y: firstMousePosition.y,
-                vx: mousePosition.x-firstMousePosition.x,
-                vy: mousePosition.y-firstMousePosition.y,
-                weight: props.weight,
-                radius: props.radius
+                x: (firstMousePosition.x - (window.innerWidth / 2 + props.screenPosition.x)) / props.screenZoom,
+                y: (firstMousePosition.y - (window.innerHeight / 2 + props.screenPosition.y)) / props.screenZoom,
+                vx: props.newPlanetOption.isFixed ? 0 : (mousePosition.x-firstMousePosition.x) / props.screenZoom,
+                vy: props.newPlanetOption.isFixed ? 0 : (mousePosition.y-firstMousePosition.y) / props.screenZoom,
+                weight: props.newPlanetOption.weight,
+                radius: props.newPlanetOption.radius,
+                isFixed: props.newPlanetOption.isFixed
             }
-            props.setNewPlanet(planet)
+            props.addNewPlanet(planet)
             setIsPainting(false);
             context.clearRect(0, 0, canvas.width, canvas.height);
         }
-    }, [firstMousePosition, isPainting, mousePosition, props]);
+    }, [firstMousePosition, isPainting, mousePosition, props, toast]);
 
     // 렌더링 함수
     const render = useCallback(() => {
@@ -153,7 +197,7 @@ export function VectorCanvas(props: CanvasProps){
         return () => {
             cancelAnimationFrame(requestAnimationRef.current);
         };
-    })
+    }, [render])
 
     useEffect(() => {
         if (!canvasRef.current) return

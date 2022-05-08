@@ -1,11 +1,12 @@
 /* eslint-disable no-restricted-globals */
 
 
-let loopId
+let loopId = 0
+let loopTimer
 let planets = {}
 let speed = 1
 let isPlay = true
-const SPEED_RADIUS = 200
+const SPEED_RADIUS = 500
 const SPACE_G = 100
 
 const getSquaredDistance = (planet, targetPlanet) => {
@@ -29,6 +30,7 @@ const getGravitationalAcceleration = (planet, targetPlanet) => {
 }
 
 function simulationLoop() {
+    loopId++
     const newPlanets = {...planets}
 
     // 주요 로직
@@ -36,7 +38,7 @@ function simulationLoop() {
     for (let planetId of Object.keys(planets)) {
         const planet = newPlanets[planetId]
         if ( !planet ) continue // 삭제된 행성 계산 무시
-
+        if ( planet.isFixed ) continue // 고정된 행성 무시
         
         // 다른 사물간의 상호작용
         for (let [targetPlanetId, targetPlanet] of Object.entries(newPlanets)) {
@@ -47,7 +49,7 @@ function simulationLoop() {
                 const weight = newPlanets[planetId].weight + newPlanets[targetPlanetId].weight
                 const radius = Math.round(Math.sqrt(newPlanets[planetId].radius**2 + newPlanets[targetPlanetId].radius**2))
 
-                if (planet.weight >= targetPlanet.weight) {
+                if (planet.weight >= targetPlanet.weight && !targetPlanet.isFixed) {
                     newPlanets[planetId].weight = weight
                     newPlanets[planetId].radius = radius
                     delete newPlanets[targetPlanetId]
@@ -67,13 +69,9 @@ function simulationLoop() {
         }
 
         newPlanets[planetId] =  {
-            weight: planet.weight,
-            radius: planet.radius,
+            ...planets[planetId],
             x: planet.x + planet.vx / SPEED_RADIUS,
             y: planet.y + planet.vy / SPEED_RADIUS,
-            vx: planet.vx,
-            vy: planet.vy,
-            color: planet.color
         }
     }
 
@@ -81,36 +79,53 @@ function simulationLoop() {
     self.postMessage({kind: 'newPlanets', planets: newPlanets})
 }
 
-loopId = setTimeout(function loop() {
+let updateRateCount = 0
+let updateRateStartTime = new Date()
+const loop = () => {
+    if (updateRateCount === 0) updateRateStartTime = new Date()
+
     isPlay && simulationLoop()
-    setTimeout(loop, Math.round(16 / speed))
-}, Math.round(16 / speed))
+    updateRateCount++ 
+
+    if (updateRateCount === 60) {
+        updateRateCount = 0
+        const updateRate = Math.round(60 / (new Date() - updateRateStartTime) * 1000)
+        self.postMessage({kind: 'ups', ups: updateRate})
+    }
+}
 
 const reset = () => {
     planets = {}
+    loopId = 0
+    loopTimer && clearInterval(loopTimer)
+    loopTimer = setInterval(loop, Math.round(16.6 / speed))
 }
-
-
-
 
 // IO
 self.addEventListener('message', event => {
     switch (event.data.kind) {
         case 'ping':
+            reset()
             self.postMessage({kind: 'pong'})
             break
 
         case 'planetAdd':
-            console.log(event.data.newPlanet.data)
+            console.table({id: event.data.newPlanet.id, ...event.data.newPlanet.data})
             planets[event.data.newPlanet.id] = event.data.newPlanet.data
+            break
+
+        case 'planetList':
+            planets = event.data.newPlanetList
             break
 
         case 'speedUpdate':
             speed = event.data.speed;
+            loopTimer && clearInterval(loopTimer)
+            loopTimer = setInterval(loop, Math.round(16 / speed))
             break
 
         case 'stopSimulate':
-            clearInterval(loopId)
+            clearInterval(loopTimer)
             break
 
         case 'isPlay':

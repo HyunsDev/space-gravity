@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import styled from "styled-components"
 
+import type { CursorMode, NewPlanetOption } from '../types'
+
 interface MousePos {
     x: number;
     y: number;
@@ -8,8 +10,10 @@ interface MousePos {
 
 interface CursorProps {
     radius: number;
-    label?: string;
-    cursorMode: 'create' | 'create-vector';
+    label?: string[];
+    cursorMode: CursorMode;
+    NewPlanetOption: NewPlanetOption;
+    screenZoom: number;
 }
 
 const CursorDiv = styled.div`
@@ -18,22 +22,30 @@ const CursorDiv = styled.div`
 `
 
 const CursorBorder = styled.div<CursorProps>`
-    width: ${props => props.radius*2}px;
-    height: ${props => props.radius*2}px;
+    width: ${props => props.radius*2*props.screenZoom}px;
+    height: ${props => props.radius*2*props.screenZoom}px;
     box-sizing: border-box;
     border-radius: 99999px;
-    border: solid 1px #ffffff;
+    border: solid 1px ${props => props.NewPlanetOption.isFixed ? '#d45e5e' : '#ffffff' };
+`
+
+const Divver = styled.div`
+    position: absolute;
+    bottom: -30px;
+    left: 50%;
+    transform: translate(-50%, 0);
 `
 
 const Label = styled.div`
     position: absolute;
-    bottom: -30px;
+    top: -20px;
     left: 50%;
     transform: translate(-50%, 0);
     color: #CCD2E2;
     white-space: nowrap;
     user-select: none;
     font-size: 14px;
+    text-align: center;
 `
 
 export function Cursor(props: CursorProps) {
@@ -69,24 +81,24 @@ export function Cursor(props: CursorProps) {
         if (!mousePos) return
         ref.current.style.top = `${mousePos.y}px`
         ref.current.style.left = `${mousePos.x}px`
-    }, [props.radius])
+    }, [props.radius, props.screenZoom])
 
     // 벡터 그리기 시작
-    const startVector = useCallback((e:MouseEvent) => {
+    const startVector = useCallback(() => {
         setMouseDown(true)
     }, [])
 
     // 벡터 그리기 끝
-    const endVector = useCallback((e: MouseEvent) => {
+    const endVector = useCallback(() => {
         setMouseDown(false)
-        mouseMoveEvent(e)
-    }, [mouseMoveEvent])
+    }, [])
 
+    
     useEffect(() => {
         document.addEventListener('mousemove', mouseMoveEvent)
         document.addEventListener('mousedown', startVector)
         document.addEventListener('mouseup', endVector)
-        return () => {
+        return () => { 
             document.removeEventListener('mousemove', mouseMoveEvent)
             document.removeEventListener('mousedown', startVector)
             document.removeEventListener('mouseup', endVector)
@@ -97,10 +109,7 @@ export function Cursor(props: CursorProps) {
         <CursorDiv ref={ref}>
             {isMouseDown ? <></> : <CursorBorder {...props} />}
             { 
-                props.label &&
-                <>
-                    <Label>{props.label.replaceAll('\n', '<br />')}</Label>
-                </> 
+                props.label && <Divver><Label>{props.label.map((e,i) => <p key={i}>{e}</p>)}</Label></Divver>
             }
         </CursorDiv>
     )

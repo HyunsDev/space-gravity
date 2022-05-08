@@ -1,18 +1,18 @@
 import { Controller, Label, Labels } from "../..";
+import type { DrawerOption } from '../../../types'
 
 interface StatisticsProps {
-    items: {
-        [key: string]: string | number
-    }
+    fps_ups: string
+    drawerOption: DrawerOption
+    planetQuota: number
 }
 
 export function Statistics(props: StatisticsProps) {
     return (
         <Controller right={20} top={20} minWidth={200}>
             <Labels>
-                {
-                    Object.keys(props.items).map(e => <Label key={e} name={e} value={props.items[e]}/>)
-                }
+                <Label name={'현재 행성 수'} value={props.planetQuota}/>
+                { props.drawerOption.isShowFPS_UPS && <Label name={'FPS / UPS'} value={props.fps_ups}/> }
             </Labels>
         </Controller>
     )
