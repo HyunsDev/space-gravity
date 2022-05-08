@@ -15,7 +15,7 @@ const ToastDiv = styled.div<ToastProps>`
     left: 50%;
     transform: translate(-50%, 0);
     transition: 200ms;
-    bottom: ${props => props.isShow ? 20 : -30}px;
+    bottom: ${props => props.isShow ? 20 : -50}px;
     color: #CCD2E2;
     width: fit-content;
     box-sizing: border-box;
@@ -25,7 +25,9 @@ const ToastDiv = styled.div<ToastProps>`
     display: flex;
     align-items: center;
     z-index: 999;
-    cursor: pointer;;
+    cursor: pointer;
+    text-align: center;
+    white-space: pre-wrap;
 `
 
 

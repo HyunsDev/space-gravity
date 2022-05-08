@@ -1,33 +1,35 @@
 import { useCallback, useEffect, useRef } from "react"
 import styled from "styled-components"
-
-interface Planet {
-    weight: number;
-    radius: number;
-    x: number;
-    y: number;
-    vx: number;
-    vy: number;
-    color?: string;
-}
+import type { Planet } from '../types'
 
 interface CanvasProps {
     planets: {[key: string]: Planet};
+    fps: any
 }
 
 const CanvasTag = styled.canvas`
     cursor: crosshair;
 `
 
+let frameRateCount = 0
+let frameRateStartTime = new Date()
+
 export function PlanetCanvas(props: CanvasProps){
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const requestAnimationRef = useRef<any>(null);
 
-    
     useEffect(() => {
-        if (canvasRef.current) {
-            canvasRef.current.width=window.innerWidth
-            canvasRef.current.height=window.innerHeight
+        const resize = () => {
+            if (canvasRef.current) {
+                canvasRef.current.width=window.innerWidth
+                canvasRef.current.height=window.innerHeight
+            }
+        }
+
+        resize()
+        window.addEventListener('resize', resize)
+        return () => {
+            window.removeEventListener('resize', resize)
         }
     }, [])
 
@@ -36,10 +38,10 @@ export function PlanetCanvas(props: CanvasProps){
         context.beginPath()
 
         context.arc(planet.x, planet.y, planet.radius, 0, 2*Math.PI) 
-        context.fillStyle = '#061B33'
+        context.fillStyle = planet.isFixed ? '#341014' : '#082340'
         context.fill()
     
-        context.strokeStyle = "#1C99F9";
+        context.strokeStyle = planet.isFixed ? '#f93d1c' : '#1C99F9'
         context.lineWidth = 1;
         context.stroke()
     }, [])
@@ -92,7 +94,16 @@ export function PlanetCanvas(props: CanvasProps){
 
     // 렌더링
     useEffect(() => {
+        if (frameRateCount === 0) frameRateStartTime = new Date()
+
         requestAnimationRef.current = requestAnimationFrame(render);
+        frameRateCount++
+
+        if (frameRateCount === 60) {
+            frameRateCount = 0
+            props.fps.current = Math.round(60 / (new Date().getTime() - frameRateStartTime.getTime()) * 1000)
+        }
+        
         return () => {
             cancelAnimationFrame(requestAnimationRef.current);
         };
