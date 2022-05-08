@@ -63,6 +63,15 @@ export function Setting(props: SettingProps) {
                             step={1} 
                         />
                     </> }
+                    <Divver />
+                    <NumberField 
+                        label="중력상수" 
+                        value={spaceG} 
+                        onChange={value => {setSpaceG(value); props.worker.postMessage({kind:'updateSpaceG', value})}} 
+                        min={1} 
+                        max={10000} 
+                        step={1} 
+                    />
                 </> }
 
                 { showOption && showDebugOption && <>
@@ -75,19 +84,11 @@ export function Setting(props: SettingProps) {
                     <CheckBox label="FPS 그래프 표시" value={props.drawerOption.DEBUS_isShowFPS} onClick={() => {props.updateDrawerOption({'DEBUS_isShowFPS': !props.drawerOption.DEBUS_isShowFPS})}} />
                     <CheckBox label="디버그 행성 정보" value={props.drawerOption.DEBUG_isShowPlanetInfo} onClick={() => {props.updateDrawerOption({'DEBUG_isShowPlanetInfo': !props.drawerOption.DEBUG_isShowPlanetInfo})}} />
                     <NumberField 
-                        label="SpaceG" 
-                        value={spaceG} 
-                        onChange={value => setSpaceG(value)} 
-                        min={0} 
-                        max={10000} 
-                        step={1} 
-                    />
-                    <NumberField 
                         label="SpeedRate" 
                         value={speedRate} 
-                        onChange={value => setSpeedRate(value)} 
+                        onChange={value => {setSpeedRate(value); props.worker.postMessage({kind:'updateSpeedRate', value})}} 
                         min={0} 
-                        max={10000} 
+                        max={1000} 
                         step={1} 
                     />
                     <InputButton 
