@@ -32,11 +32,10 @@ const ControllerDiv = styled.div<ControllerProps>`
     height: fit-content;
     ${props => props.minWidth && `min-width: ${props.minWidth}px`};
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     padding: 4px 8px;
     border-radius: 4px;
-    background-color: rgba(44,48,62, 0.4);
-    /* backdrop-filter: blur(5px); */
+    background-color: #1d202c99;
     width: fit-content;
     box-sizing: border-box;
     gap: 8px;
@@ -90,7 +89,8 @@ const dragEndHandler = (e: any, ref: any) => {
 
 const ControllerMoveDiv = styled.div`
     display: flex;
-    align-items: center;
+    align-items: flex-start;
+    margin-top: 2px;
 `
 
 const ControllerMove = (props: ControllerMoveProps) => {

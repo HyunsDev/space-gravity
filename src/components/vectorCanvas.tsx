@@ -9,6 +9,8 @@ interface CanvasProps {
     setCursorMode: Function;
     setMouseVector: Function;
     addNewPlanet: (planet:Planet) => void;
+    screenPosition: {x: number, y: number}
+    screenZoom: number
 }
 
 interface MousePos {
@@ -87,13 +89,13 @@ export function VectorCanvas(props: CanvasProps){
         if(!context) return
         
         context.beginPath()
-        context.arc(mousePos.x, mousePos.y, props.newPlanetOption.radius, 0, 2*Math.PI) 
+        context.arc(mousePos.x, mousePos.y, props.newPlanetOption.radius*props.screenZoom, 0, 2*Math.PI) 
         context.fillStyle = props.newPlanetOption.isFixed ? '#f93d1c33' : '#f9951c33'
         context.fill()
         context.strokeStyle = props.newPlanetOption.isFixed ? '#f93d1c' : "#f9951c";
         context.lineWidth = 1;
         context.stroke()
-    }, [props.newPlanetOption])
+    }, [props.newPlanetOption.isFixed, props.newPlanetOption.radius, props.screenZoom])
 
     // 선 시작
     const startPaint = useCallback((event: MouseEvent) => {
@@ -158,10 +160,10 @@ export function VectorCanvas(props: CanvasProps){
             if (!mousePosition || !firstMousePosition) return
             toast.off()
             const planet = {
-                x: firstMousePosition.x,
-                y: firstMousePosition.y,
-                vx: props.newPlanetOption.isFixed ? 0 : mousePosition.x-firstMousePosition.x,
-                vy: props.newPlanetOption.isFixed ? 0 : mousePosition.y-firstMousePosition.y,
+                x: (firstMousePosition.x - (window.innerWidth / 2 + props.screenPosition.x)) / props.screenZoom,
+                y: (firstMousePosition.y - (window.innerHeight / 2 + props.screenPosition.y)) / props.screenZoom,
+                vx: props.newPlanetOption.isFixed ? 0 : (mousePosition.x-firstMousePosition.x) / props.screenZoom,
+                vy: props.newPlanetOption.isFixed ? 0 : (mousePosition.y-firstMousePosition.y) / props.screenZoom,
                 weight: props.newPlanetOption.weight,
                 radius: props.newPlanetOption.radius,
                 isFixed: props.newPlanetOption.isFixed
@@ -195,7 +197,7 @@ export function VectorCanvas(props: CanvasProps){
         return () => {
             cancelAnimationFrame(requestAnimationRef.current);
         };
-    })
+    }, [render])
 
     useEffect(() => {
         if (!canvasRef.current) return

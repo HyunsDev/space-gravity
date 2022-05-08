@@ -6,7 +6,7 @@ let loopTimer
 let planets = {}
 let speed = 1
 let isPlay = true
-const SPEED_RADIUS = 1000
+const SPEED_RADIUS = 500
 const SPACE_G = 100
 
 const getSquaredDistance = (planet, targetPlanet) => {

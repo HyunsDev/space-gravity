@@ -13,6 +13,7 @@ interface CursorProps {
     label?: string[];
     cursorMode: CursorMode;
     NewPlanetOption: NewPlanetOption;
+    screenZoom: number;
 }
 
 const CursorDiv = styled.div`
@@ -21,8 +22,8 @@ const CursorDiv = styled.div`
 `
 
 const CursorBorder = styled.div<CursorProps>`
-    width: ${props => props.radius*2}px;
-    height: ${props => props.radius*2}px;
+    width: ${props => props.radius*2*props.screenZoom}px;
+    height: ${props => props.radius*2*props.screenZoom}px;
     box-sizing: border-box;
     border-radius: 99999px;
     border: solid 1px ${props => props.NewPlanetOption.isFixed ? '#d45e5e' : '#ffffff' };
@@ -62,29 +63,11 @@ export function Cursor(props: CursorProps) {
         };
     };
 
-    const getTouchPos = (event: TouchEvent): MousePos | undefined => {
-        if (!ref.current) return;
-        const div: HTMLDivElement = ref.current;
-        return {
-            x: event.changedTouches[0].pageX - div.offsetWidth/2 ,
-            y: event.changedTouches[0].pageY - div.offsetHeight/2
-        };
-    };
-
     // 커서 위치 이동
     const mouseMoveEvent = useCallback((e: MouseEvent) => {
         if (!ref.current) return
         lastMousePos.current = e
         const mousePos = getMousePos(e);
-        if (!mousePos) return
-        ref.current.style.top = `${mousePos.y}px`
-        ref.current.style.left = `${mousePos.x}px`
-    }, [])
-
-    const touchMoveEvent = useCallback((e: TouchEvent) => {
-        if (!ref.current) return
-        lastMousePos.current = e
-        const mousePos = getTouchPos(e);
         if (!mousePos) return
         ref.current.style.top = `${mousePos.y}px`
         ref.current.style.left = `${mousePos.x}px`
@@ -98,7 +81,7 @@ export function Cursor(props: CursorProps) {
         if (!mousePos) return
         ref.current.style.top = `${mousePos.y}px`
         ref.current.style.left = `${mousePos.x}px`
-    }, [props.radius])
+    }, [props.radius, props.screenZoom])
 
     // 벡터 그리기 시작
     const startVector = useCallback(() => {
@@ -111,23 +94,16 @@ export function Cursor(props: CursorProps) {
     }, [])
 
     
-
     useEffect(() => {
         document.addEventListener('mousemove', mouseMoveEvent)
-        document.addEventListener('touchmove', touchMoveEvent)
         document.addEventListener('mousedown', startVector)
-        document.addEventListener('touchstart', startVector)
         document.addEventListener('mouseup', endVector)
-        document.addEventListener('touchend', endVector)
         return () => { 
             document.removeEventListener('mousemove', mouseMoveEvent)
-            document.removeEventListener('touchmove', touchMoveEvent)
             document.removeEventListener('mousedown', startVector)
-            document.removeEventListener('touchstart', startVector)
             document.removeEventListener('mouseup', endVector)
-            document.removeEventListener('touchend', endVector)
         }
-    }, [endVector, mouseMoveEvent, startVector, touchMoveEvent])
+    }, [endVector, mouseMoveEvent, startVector])
 
     return (
         <CursorDiv ref={ref}>

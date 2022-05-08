@@ -1,6 +1,7 @@
 type CursorMode = 'create'
                 | 'create-vector'
-                | 'create-vector'
+                | 'move'
+                | 'select'
                 | ''
 
 export type { CursorMode }
