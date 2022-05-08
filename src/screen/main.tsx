@@ -1,5 +1,5 @@
 import { Controller, Button, Label, Labels, VectorCanvas, Cursor, PlanetCanvas, GridCanvas, Move } from "../components";
-import { Statistics, Setting } from "../components/main/interface";
+import { Statistics, Setting, RandomGenerator } from "../components/main/interface";
 import { 
     Play,
     Pause,
@@ -12,7 +12,8 @@ import {
     Minus,
     ArrowsOut,
     ArrowsIn,
-    ArrowClockwise
+    ArrowClockwise,
+    Trash
 } from "phosphor-react";
 import Logo from '../assets/lettering.png'
 import styled from "styled-components";
@@ -160,8 +161,6 @@ export default function Main() {
                 case 'ups':
                     ups.current = msg.data.ups
                     break
-                default:
-                    break;
             }
         }
     }, [toast])
@@ -201,6 +200,17 @@ export default function Main() {
         _worker.current.postMessage({kind: 'isPlay', isPlay: !isPlay})
     }, [isPlay])
 
+    const play = useCallback(() => {
+        if (!_worker.current) return
+        setPlay(true)
+        _worker.current.postMessage({kind: 'isPlay', isPlay: true})
+    }, [])
+
+    const pause = useCallback(() => {
+        if (!_worker.current) return
+        setPlay(false)
+        _worker.current.postMessage({kind: 'isPlay', isPlay: false})
+    }, [])
 
     // 시뮬레이터 리셋
     const reset = useCallback(() => {
@@ -292,11 +302,14 @@ export default function Main() {
                 setScreenPosition({y: screenPosition.y, x: screenPosition.x - 10})
                 break
 
+            case ' ':
+                pauseToggle()
+                break
 
             default: 
                 break
         }
-    }, [screenPosition.x, screenPosition.y, updateNewPlanetOption])
+    }, [pauseToggle, screenPosition.x, screenPosition.y, updateNewPlanetOption])
 
     const keyup = useCallback((e:any) => {
         switch(e.key) {
@@ -401,6 +414,14 @@ export default function Main() {
             <Setting 
                 updateDrawerOption={updateDrawerOption}
                 drawerOption={drawerOption}
+                worker={_worker.current}
+            />
+
+            <RandomGenerator
+                drawerOption={drawerOption}
+                addNewPlanet={addNewPlanet}
+                pause={pause}
+                play={play}
             />
             
             <Controller left={20} bottom={140}>
@@ -423,7 +444,8 @@ export default function Main() {
 
             <Controller left={20} bottom={20}>
                 <Button content={isPlay ? <Pause /> : <Play />} tooltip={isPlay ? '일시정지' : '재생'} onClick={pauseToggle} />
-                <Button content={<ArrowClockwise />} tooltip='초기화 [ r ]' onClick={() => reset()} />
+                <Button content={<Trash />} tooltip='행성 지우기 [ r ]' onClick={() => reset()} />
+                <Button content={<ArrowClockwise />} tooltip='새로고침 [ ctrl r ]' onClick={() => window.location.reload() } />
                 <Button content={<CaretLeft  />} tooltip='느리게 [ < ]' onClick={() => speed-0.5 > 0 && setSpeed(speed-0.5)} />
                 <Button content={`${speed}x`} tooltip='시뮬레이션 속도' onClick={() => console.log('play')} />
                 <Button content={<CaretRight  />} tooltip='빠르게 [ > ]' onClick={() => speed+0.5 < 4 && setSpeed(speed+0.5)} />

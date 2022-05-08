@@ -76,6 +76,37 @@ export function CheckBox(props: CheckBoxProps) {
 }
 
 
+interface ButtonProps {
+    label: string;
+    onClick: Function;
+}
+
+const ButtonDivver = styled.div`
+    border-radius: 4px;
+    transition: 200ms;
+    height: 100%;
+    display: flex;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    gap: 8px;
+    width: 100%;
+    font-size: 14px;
+    padding: 2px 4px;
+    cursor: pointer;
+    &:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+`
+
+export function InputButton(props: ButtonProps) {
+    return (
+        <ButtonDivver onClick={() => props.onClick()}>
+            <InputLabel>{props.label}</InputLabel>
+        </ButtonDivver>
+    )
+}
 
 interface NumberFieldProps {
     label: string;

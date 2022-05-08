@@ -1,16 +1,24 @@
-import { useState } from "react";
-import { Controller, CheckBox, Inputs, NumberField, Divver } from "../..";
+import { useState, useEffect, useContext } from "react";
+import { Controller, CheckBox, Inputs, NumberField, Divver, InputButton } from "../..";
+import { ToastContext } from "../../../context/toast";
 
 import type { DrawerOption, UpdateDrawerOption } from '../../../types'
 
 interface SettingProps {
     drawerOption: DrawerOption
+    worker: any
     updateDrawerOption: (newOption: UpdateDrawerOption) => void
 }
 
 export function Setting(props: SettingProps) {
+    const toast = useContext(ToastContext)
+
     const [ showOption, setShowOption ] = useState(false)
     const [ showDebugOption, setShowDebugOption ] = useState(false)
+
+    const [ speedRate, setSpeedRate ] = useState(500)
+    const [ spaceG, setSpaceG ] = useState(100)
+    
 
     return (
         <Controller right={230} top={20} minWidth={120}>
@@ -66,6 +74,26 @@ export function Setting(props: SettingProps) {
                     />
                     <CheckBox label="FPS 그래프 표시" value={props.drawerOption.DEBUS_isShowFPS} onClick={() => {props.updateDrawerOption({'DEBUS_isShowFPS': !props.drawerOption.DEBUS_isShowFPS})}} />
                     <CheckBox label="디버그 행성 정보" value={props.drawerOption.DEBUG_isShowPlanetInfo} onClick={() => {props.updateDrawerOption({'DEBUG_isShowPlanetInfo': !props.drawerOption.DEBUG_isShowPlanetInfo})}} />
+                    <NumberField 
+                        label="SpaceG" 
+                        value={spaceG} 
+                        onChange={value => setSpaceG(value)} 
+                        min={0} 
+                        max={10000} 
+                        step={1} 
+                    />
+                    <NumberField 
+                        label="SpeedRate" 
+                        value={speedRate} 
+                        onChange={value => setSpeedRate(value)} 
+                        min={0} 
+                        max={10000} 
+                        step={1} 
+                    />
+                    <InputButton 
+                        label="Squawk"
+                        onClick={() => {props.worker.postMessage({kind:'SquawkYourParrot'}); toast('개발자 도구를 확인하세요.')}}
+                    />
                 </> }
             </Inputs>
         </Controller>
