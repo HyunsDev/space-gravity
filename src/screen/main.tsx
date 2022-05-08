@@ -59,7 +59,7 @@ export default function Main() {
         color: '',
         isFixed: false,
         radius: 8,
-        weight: 8
+        mass: 8
     })
     const [ newPlanetOption, setNewPlanetOption ] = useState(newPlanetOptionRef.current)
     
@@ -90,7 +90,7 @@ export default function Main() {
     let cursorLabel
     switch (cursorMode) {
         case 'create':
-            cursorLabel = [`질량 ${newPlanetOption.weight}`]
+            cursorLabel = [`질량 ${newPlanetOption.mass}`]
             if (newPlanetOption.isFixed) cursorLabel.push(`고정`)
             break;
         case 'create-vector':
@@ -187,11 +187,11 @@ export default function Main() {
     }, [updateNewPlanetOption])
 
     // 무게 변경
-    const changeWeight = useCallback((newWeight: number) => {
+    const changeMass = useCallback((newMass: number) => {
         if (!_worker.current) return
-        if (newWeight >= PLANET_MIN_WEIGHT)
-        // setWeight(newWeight)
-        updateNewPlanetOption({weight: newWeight})
+        if (newMass >= PLANET_MIN_WEIGHT)
+        // setMass(newMass)
+        updateNewPlanetOption({mass: newMass})
     }, [updateNewPlanetOption])
 
     // 재생, 일시정지
@@ -223,12 +223,12 @@ export default function Main() {
         switch(e.key) {
             case '=': // 질량, 크기 증가
                 changeRadius(newPlanetOption.radius+4)
-                changeWeight(newPlanetOption.weight+4)
+                changeMass(newPlanetOption.mass+4)
                 break
 
             case '-': // 질량, 크기 감소
                 changeRadius(newPlanetOption.radius-4)
-                changeWeight(newPlanetOption.weight-4)
+                changeMass(newPlanetOption.mass-4)
                 break
 
             case '+': // 크기 증가
@@ -264,7 +264,7 @@ export default function Main() {
             default:
                 break
         }
-    }, [changeRadius, changeWeight, newPlanetOption.radius, newPlanetOption.weight, reset, speed])
+    }, [changeRadius, changeMass, newPlanetOption.radius, newPlanetOption.mass, reset, speed])
 
     const keydown = useCallback((e:KeyboardEvent) => {
         switch(e.key) {
@@ -416,9 +416,9 @@ export default function Main() {
             </Controller>
 
             <Controller left={20} bottom={60}>
-                <Button content={<Minus />} tooltip='가볍게 [ - ]' onClick={() => changeWeight(newPlanetOption.weight-4)} />
-                <Button content={`${newPlanetOption.weight}`} tooltip='질량' onClick={() => null} />
-                <Button content={<Plus />} tooltip='무겁게 [ + ]' onClick={() => changeWeight(newPlanetOption.weight+4)} />
+                <Button content={<Minus />} tooltip='가볍게 [ - ]' onClick={() => changeMass(newPlanetOption.mass-4)} />
+                <Button content={`${newPlanetOption.mass}`} tooltip='질량' onClick={() => null} />
+                <Button content={<Plus />} tooltip='무겁게 [ + ]' onClick={() => changeMass(newPlanetOption.mass+4)} />
             </Controller>
 
             <Controller left={20} bottom={20}>

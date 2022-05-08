@@ -11,7 +11,7 @@ interface RandomGeneratorProps {
 export function RandomGenerator(props: RandomGeneratorProps) {
     const [ showOption, setShowOption ] = useState(false)
     const [ amount, setAmount ] = useState(100)
-    const [ weight, setWeight ] = useState(8)
+    const [ mass, setMass ] = useState(8)
     const [ radius, setRadius ] = useState(8)
     const [ generateRadius, setGenerateRadius ] = useState(128)
 

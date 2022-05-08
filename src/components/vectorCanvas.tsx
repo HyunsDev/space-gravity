@@ -164,7 +164,7 @@ export function VectorCanvas(props: CanvasProps){
                 y: (firstMousePosition.y - (window.innerHeight / 2 + props.screenPosition.y)) / props.screenZoom,
                 vx: props.newPlanetOption.isFixed ? 0 : (mousePosition.x-firstMousePosition.x) / props.screenZoom,
                 vy: props.newPlanetOption.isFixed ? 0 : (mousePosition.y-firstMousePosition.y) / props.screenZoom,
-                weight: props.newPlanetOption.weight,
+                mass: props.newPlanetOption.mass,
                 radius: props.newPlanetOption.radius,
                 isFixed: props.newPlanetOption.isFixed
             }

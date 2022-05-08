@@ -19,7 +19,7 @@ const getDistance = (planet, targetPlanet) => {
 
 const getGravitationalAcceleration = (planet, targetPlanet) => {
     const r = getDistance(planet, targetPlanet)
-    const g = SPACE_G * planet.weight * targetPlanet.weight / ( getSquaredDistance(planet, targetPlanet) )
+    const g = SPACE_G * planet.mass * targetPlanet.mass / ( getSquaredDistance(planet, targetPlanet) )
     const sinA = (targetPlanet.y - planet.y) / r
     const cosA = (targetPlanet.x - planet.x) / r
 
@@ -46,15 +46,15 @@ function simulationLoop() {
 
             // 충돌 감지
             if (getSquaredDistance(planet, targetPlanet) < (planet.radius + targetPlanet.radius)**2) {
-                const weight = newPlanets[planetId].weight + newPlanets[targetPlanetId].weight
+                const mass = newPlanets[planetId].mass + newPlanets[targetPlanetId].mass
                 const radius = Math.round(Math.sqrt(newPlanets[planetId].radius**2 + newPlanets[targetPlanetId].radius**2))
 
-                if (planet.weight >= targetPlanet.weight && !targetPlanet.isFixed) {
-                    newPlanets[planetId].weight = weight
+                if (planet.mass >= targetPlanet.mass && !targetPlanet.isFixed) {
+                    newPlanets[planetId].mass = mass
                     newPlanets[planetId].radius = radius
                     delete newPlanets[targetPlanetId]
                 } else {
-                    newPlanets[targetPlanetId].weight = weight
+                    newPlanets[targetPlanetId].mass = mass
                     newPlanets[targetPlanetId].radius = radius
                     delete newPlanets[planetId]
                     continue planetLoop;
