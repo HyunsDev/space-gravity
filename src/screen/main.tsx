@@ -68,7 +68,7 @@ export default function Main() {
         isShowPlanetInfo: false,
         isShowGrid: true,
         gridBrightness: 15,
-        gridStep: 50,
+        gridStep: 20,
         isShowFPS_UPS: false,
         DEBUG_isShowPlanetInfo: false,
         DEBUS_isShowFPS: false,
