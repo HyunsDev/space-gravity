@@ -353,16 +353,6 @@ export default function Main() {
         <>  
             <Canvases>
                 {
-                    (drawerOption.isShowGrid) &&
-                    <GridCanvas 
-                        drawerOption={drawerOption}
-                        screenPosition={screenPosition}
-                        screenZoom={screenZoom}
-                    />
-                }
-                
-
-                {
                     (cursorMode === 'create' || cursorMode === 'create-vector') &&
                     <VectorCanvas
                         newPlanetOption={newPlanetOption}
@@ -375,9 +365,9 @@ export default function Main() {
                 }
 
                 {
-                    (cursorMode === 'move') &&
-                    <Move
-                        setScreenPosition={setScreenPosition}
+                    (drawerOption.isShowGrid) &&
+                    <GridCanvas 
+                        drawerOption={drawerOption}
                         screenPosition={screenPosition}
                         screenZoom={screenZoom}
                     />
@@ -390,6 +380,17 @@ export default function Main() {
                     screenPosition={screenPosition}
                     screenZoom={screenZoom}
                 />
+
+{
+                    (cursorMode === 'move') &&
+                    <Move
+                        setScreenPosition={setScreenPosition}
+                        screenPosition={screenPosition}
+                        screenZoom={screenZoom}
+                    />
+                }
+
+
             </Canvases>
             {
                 (cursorMode === 'create' || cursorMode === 'create-vector') &&

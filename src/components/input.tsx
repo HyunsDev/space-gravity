@@ -10,6 +10,7 @@ const InputsDiv = styled.div`
     flex-direction: column;
     width: 100%;
     gap: 2px;
+    z-index: 999;
 `
 
 export function Inputs(props: InputsProps) {
@@ -130,6 +131,7 @@ const NumberFieldDivver = styled.div`
     width: 100%;
     font-size: 14px;
     padding: 2px 4px;
+    z-index: 999;
 `
 
 const NumberFieldInput = styled.input`
@@ -169,6 +171,7 @@ const NumberFieldRangeDiv = styled.div`
     position: relative;
     display: flex;
     align-items: center;
+    z-index: 999;
 
     & > div {
         transition: 200ms background-color;
@@ -186,7 +189,7 @@ const FakeNumberFieldRangeOuter = styled.div`
     width: 72px;
     height: 16px;
     background-color: rgba(226, 224, 222, 0.1);
-    
+    pointer-events: none;
 `
 
 const FakeNumberFieldRangeInner = styled.div`
@@ -196,6 +199,7 @@ const FakeNumberFieldRangeInner = styled.div`
     height: 16px;
     width: ${(props: {value: number, min: number, max: number}) => props.value / (props.max - props.min) * 72}px;
     background-color: rgba(226, 224, 222, 0.2);
+    pointer-events: none;
 `
 
 const NumberFieldRange = styled.input`
