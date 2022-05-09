@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useState, useRef } from "react"
 import styled from "styled-components"
 
 interface CanvasProps {
@@ -22,6 +22,7 @@ const MoveDiv = styled.div<{isMoving: boolean}>`
 `
 
 export function Move(props: CanvasProps){
+    const MoveRef = useRef<HTMLDivElement | null>(null)
     const [ firstScreenPosition, setFirstScreenPosition ] = useState(props.screenPosition)
     const [ firstMousePosition, setFirstMousePosition ] = useState<MousePos | undefined>(undefined)
     const [ isMoving, setIsMoving ] = useState(false);
@@ -56,7 +57,7 @@ export function Move(props: CanvasProps){
         }
         props.setScreenPosition(newScreenPosition)
 
-    },[firstMousePosition, firstScreenPosition.x, firstScreenPosition.y, getMousePos, isMoving, props]);
+    }, [firstMousePosition, firstScreenPosition.x, firstScreenPosition.y, getMousePos, isMoving, props]);
 
     // 이동 끝
     const endMove = useCallback(() => {
@@ -65,20 +66,22 @@ export function Move(props: CanvasProps){
     }, [isMoving]);
 
     useEffect(() => {
-        document.addEventListener('mousedown', startMove);
-        document.addEventListener('mousemove', move);
-        document.addEventListener('mouseup', endMove);
-        document.addEventListener('mouseleave', endMove);
+        if (!MoveRef.current) return
+        MoveRef.current.addEventListener('mousedown', startMove);
+        window.addEventListener('mousemove', move);
+        window.addEventListener('mouseup', endMove);
+        window.addEventListener('mouseleave', endMove);
 
         return () => {
-            document.removeEventListener('mousedown', startMove);
-            document.removeEventListener('mousemove', move);
-            document.removeEventListener('mouseup', endMove);
-            document.removeEventListener('mouseleave', endMove);
+            if (!MoveRef.current) return
+            MoveRef.current.removeEventListener('mousedown', startMove);
+            window.removeEventListener('mousemove', move);
+            window.removeEventListener('mouseleave', endMove);
+            window.removeEventListener('mouseup', endMove);
         }
     }, [endMove, move, startMove])
 
     return (
-        <MoveDiv isMoving={isMoving} />
+        <MoveDiv isMoving={isMoving} ref={MoveRef} />
     )
 }

@@ -29,7 +29,7 @@ export function RandomGenerator(props: RandomGeneratorProps) {
     const randomGenerate = useCallback(async () => {
         props.pause()
         await sleep(500)
-        for (let i = 0; i < 100; i++) {
+        for (let i = 0; i < amount; i++) {
             const newPlanet = {
                 mass,
                 radius,
@@ -41,7 +41,7 @@ export function RandomGenerator(props: RandomGeneratorProps) {
             }
             props.addNewPlanet(newPlanet)
         }
-    }, [generateRadius, mass, props, radius, speed])
+    }, [amount, generateRadius, mass, props, radius, speed])
 
     return (
         <Controller left={20} bottom={180} minWidth={120}>
@@ -64,7 +64,7 @@ export function RandomGenerator(props: RandomGeneratorProps) {
                         label="수량" 
                         value={amount} 
                         onChange={(value) => setAmount(value)} 
-                        min={10} 
+                        min={0} 
                         max={2000} 
                         step={1} 
                     />
@@ -88,7 +88,7 @@ export function RandomGenerator(props: RandomGeneratorProps) {
                         label="행성 속도" 
                         value={speed} 
                         onChange={(value) => setSpeed(value)} 
-                        min={10} 
+                        min={0} 
                         max={1000} 
                         step={1} 
                     />

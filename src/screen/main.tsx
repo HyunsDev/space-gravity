@@ -352,32 +352,12 @@ export default function Main() {
     return (
         <>  
             <Canvases>
+                
+
                 {
                     (drawerOption.isShowGrid) &&
                     <GridCanvas 
                         drawerOption={drawerOption}
-                        screenPosition={screenPosition}
-                        screenZoom={screenZoom}
-                    />
-                }
-                
-
-                {
-                    (cursorMode === 'create' || cursorMode === 'create-vector') &&
-                    <VectorCanvas
-                        newPlanetOption={newPlanetOption}
-                        setCursorMode={setCursorMode}
-                        setMouseVector={setMouseVector}
-                        addNewPlanet={addNewPlanet}
-                        screenPosition={screenPosition}
-                        screenZoom={screenZoom}
-                    />
-                }
-
-                {
-                    (cursorMode === 'move') &&
-                    <Move
-                        setScreenPosition={setScreenPosition}
                         screenPosition={screenPosition}
                         screenZoom={screenZoom}
                     />
@@ -390,6 +370,29 @@ export default function Main() {
                     screenPosition={screenPosition}
                     screenZoom={screenZoom}
                 />
+                
+                {
+                    (cursorMode === 'create' || cursorMode === 'create-vector') &&
+                    <VectorCanvas
+                        newPlanetOption={newPlanetOption}
+                        setCursorMode={setCursorMode}
+                        setMouseVector={setMouseVector}
+                        addNewPlanet={addNewPlanet}
+                        screenPosition={screenPosition}
+                        screenZoom={screenZoom}
+                    />
+                }
+
+{
+                    (cursorMode === 'move') &&
+                    <Move
+                        setScreenPosition={setScreenPosition}
+                        screenPosition={screenPosition}
+                        screenZoom={screenZoom}
+                    />
+                }
+
+
             </Canvases>
             {
                 (cursorMode === 'create' || cursorMode === 'create-vector') &&

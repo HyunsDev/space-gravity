@@ -12,6 +12,10 @@ interface CanvasProps {
 
 const CanvasTag = styled.canvas`
     cursor: crosshair;
+    position: absolute;
+    pointer-events: none;
+    left: 0;
+    top: 0;
 `
 
 let frameRateCount = 0
@@ -60,7 +64,7 @@ export function PlanetCanvas(props: CanvasProps){
             context.font = '12px sans-serif';
             context.fillStyle = "#b7b4c5";
             context.textAlign = 'center'
-            context.fillText(`질량 ${planet.mass}`, planet.x, planet.y + planet.radius + 25);
+            context.fillText(`질량 ${planet.mass} 반지름 ${planet.radius}`, planet.x, planet.y + planet.radius + 25);
             context.fillText(`위치 (${Math.round(planet.x)}, ${Math.round(planet.y)})`, planet.x, planet.y + planet.radius + 40);
             context.fillText(`속도 (${Math.round(planet.vx)}, ${Math.round(planet.vy)})`, planet.x, planet.y + planet.radius + 55);
         }

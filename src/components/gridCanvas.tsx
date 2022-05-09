@@ -9,6 +9,7 @@ interface CanvasProps {
 }
 
 const CanvasTag = styled.canvas`
+    pointer-events: none;
     position: absolute;
     left: 0;
     top: 0;

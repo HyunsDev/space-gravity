@@ -141,7 +141,7 @@ export function VectorCanvas(props: CanvasProps){
     
     useEffect(() => {
         const cancel = (e:KeyboardEvent) => {
-            if (e.key === 'Escape') cancelPaint()
+            if (e.code === 'Escape') cancelPaint()
         }
         document.addEventListener('keydown', cancel)
         return () => {
@@ -216,7 +216,6 @@ export function VectorCanvas(props: CanvasProps){
     }, [exitPaint, paint, startPaint])
 
     return (
-        <CanvasTag ref={canvasRef}>
-        </CanvasTag>
+        <CanvasTag ref={canvasRef} />
     )
 }

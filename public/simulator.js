@@ -54,9 +54,14 @@ function simulationLoop() {
                     newPlanets[planetId].radius = radius
                     delete newPlanets[targetPlanetId]
                 } else {
-                    newPlanets[targetPlanetId].mass = mass
-                    newPlanets[targetPlanetId].radius = radius
-                    delete newPlanets[planetId]
+                    if (targetPlanet.isFixed) {
+                        newPlanets[targetPlanetId].mass = mass
+                        delete newPlanets[planetId]
+                    } else {
+                        newPlanets[targetPlanetId].mass = mass
+                        newPlanets[targetPlanetId].radius = radius
+                        delete newPlanets[planetId]
+                    }
                     continue planetLoop;
                 }
                 continue

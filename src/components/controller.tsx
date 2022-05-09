@@ -41,6 +41,7 @@ const ControllerDiv = styled.div<ControllerProps>`
     gap: 8px;
     color: #CCD2E2;
     user-select: none;
+    z-index: 999;
 `
 
 const SixDots = styled(DotsSixVertical)`
