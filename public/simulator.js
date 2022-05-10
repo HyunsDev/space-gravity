@@ -24,8 +24,8 @@ const getGravitationalAcceleration = (planet, targetPlanet) => {
     const cosA = (targetPlanet.x - planet.x) / r
 
     return {
-        ax: g * cosA,
-        ay: g * sinA
+        ax: g * cosA / planet.mass,
+        ay: g * sinA / planet.mass
     }
 }
 
