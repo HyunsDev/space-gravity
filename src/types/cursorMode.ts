@@ -1,3 +1,4 @@
+// @Deprecated
 type CursorMode = 'create'
                 | 'create-vector'
                 | 'move'

@@ -24,6 +24,8 @@ import { ToastContext } from "../context/toast";
 import { ReactComponent as GithubSvg } from '../assets/github.svg'
 
 import type { CursorMode, Planet, NewPlanetOption, UpdateNewPlanetOption, DrawerOption, UpdateDrawerOption } from "../types/";
+import { SettingContext } from "../context/setting";
+import { WorkerContext } from "../context/worker";
 
 // 상수
 const PLANET_MIN_WEIGHT = 4
@@ -64,6 +66,9 @@ const GithubIcon = styled(GithubSvg)`
 
 export default function Main() {
     const toast = useContext(ToastContext)
+    const setting = useContext(SettingContext)
+    const worker = useContext(WorkerContext)
+
     const _worker = useRef<any>(null)
     const [ planets, setPlanets ] = useState<{[key: string]: Planet}>({}) // 현재의 행성 정보
 
