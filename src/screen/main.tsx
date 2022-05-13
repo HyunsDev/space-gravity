@@ -21,6 +21,7 @@ import { useEffect, useRef, useState, useContext, useCallback } from "react";
 import { v4 as uuidv4 } from 'uuid';
 import FPSStats from "react-fps-stats";
 import { ToastContext } from "../context/toast";
+import { ReactComponent as GithubSvg } from '../assets/github.svg'
 
 import type { CursorMode, Planet, NewPlanetOption, UpdateNewPlanetOption, DrawerOption, UpdateDrawerOption } from "../types/";
 
@@ -49,6 +50,16 @@ const Canvases = styled.div`
     position: relative;
     width: 100vw;
     min-height: 100vh;
+`
+
+const GithubIcon = styled(GithubSvg)`
+    position: fixed;
+    width: 24px;
+    height: 24px;
+    top: 36px;
+    left: 220px;   
+    user-select: none;
+    fill: #ffffff;
 `
 
 export default function Main() {
@@ -407,6 +418,9 @@ export default function Main() {
             <LogoDiv>
                 <img src={Logo} alt='스페이스 그래비티 로고' />
             </LogoDiv>
+            <a href="https://github.com/HyunsDev/space-gravity" target={"_blank"} rel="noreferrer">
+                <GithubIcon /> 
+            </a>
 
             {drawerOption.DEBUS_isShowFPS && <FPSStats />}
             <Statistics 
