@@ -7,12 +7,13 @@ const initSetting: Setting = {
     PLANET_MIN_RADIUS: 4,
     WHEEL_STEP: 0.25,
 
-    drawerIsShowPlanet_Vector: true,
+    drawerIsShowPlanetVector: true,
     drawerIsShowPlanetInfo: false,
     drawerIsShowGrid: true,
     drawerGridBrightness: 15,
     drawerGridStep: 20,
     drawerIsShowFPS_UPS: false,
+
     drawerScreenPosition: { x: 0, y: 0 },
     drawerScreenZoom: 1,
 

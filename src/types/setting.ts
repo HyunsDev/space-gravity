@@ -3,30 +3,30 @@ import type {} from './cursorMode'
 type CursorMode = 'create' | 'create-vector' | 'move' | 'select'
 
 interface Setting {
-    PLANET_MIN_WEIGHT: Number,
-    PLANET_MIN_RADIUS: Number,
-    WHEEL_STEP: Number,
+    PLANET_MIN_WEIGHT: number,
+    PLANET_MIN_RADIUS: number,
+    WHEEL_STEP: number,
 
     newPlanetColor: String,
-    newPlanetIsFixed: Boolean,
-    newPlanetRadius: Number,
-    newPlanetMass: Number,
+    newPlanetIsFixed: boolean,
+    newPlanetRadius: number,
+    newPlanetMass: number,
 
-    drawerIsShowPlanet_Vector: Boolean,
-    drawerIsShowPlanetInfo: Boolean,
-    drawerIsShowGrid: Boolean,
-    drawerGridBrightness: Number,
-    drawerGridStep: Number,
-    drawerIsShowFPS_UPS: Boolean,
-    drawerScreenPosition: {x: Number, y: Number},
-    drawerScreenZoom: Number,
+    drawerIsShowPlanetVector: boolean,
+    drawerIsShowPlanetInfo: boolean,
+    drawerIsShowGrid: boolean,
+    drawerGridBrightness: number,
+    drawerGridStep: number,
+    drawerIsShowFPS_UPS: boolean,
+    drawerScreenPosition: {x: number, y: number},
+    drawerScreenZoom: number,
 
-    isPlay: Boolean,
-    simulatorSpeed: Number,
+    isPlay: boolean,
+    simulatorSpeed: number,
     cursorMode: CursorMode,
 
-    DEBUG_drawerIsShowPlanetInfo: Boolean,
-    DEBUS_drawerIsShowFPS: Boolean,
+    DEBUG_drawerIsShowPlanetInfo: boolean,
+    DEBUS_drawerIsShowFPS: boolean,
 }
 
 export type { Setting } 

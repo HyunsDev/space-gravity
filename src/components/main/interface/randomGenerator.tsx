@@ -1,16 +1,13 @@
-import { useCallback, useState } from "react";
+import { useCallback, useContext, useState } from "react";
 import { Controller, CheckBox, Inputs, NumberField, Divver, InputButton } from "../..";
-
-import type { DrawerOption, UpdateDrawerOption, NewPlanet } from '../../../types'
+import { SettingContext } from "../../../context/setting";
+import { WorkerContext } from "../../../context/worker";
 
 function sleep(ms:number){
     return new Promise(resolve=>setTimeout(resolve,ms));
  }
 
 interface RandomGeneratorProps {
-    drawerOption: DrawerOption
-    pause: Function,
-    play: Function,
     addNewPlanet: Function
 }
 
@@ -19,6 +16,9 @@ function getRandomArbitrary(min:number, max:number) {
   }
 
 export function RandomGenerator(props: RandomGeneratorProps) {
+    const setting = useContext(SettingContext)
+    const worker = useContext(WorkerContext)
+
     const [ showOption, setShowOption ] = useState(false)
     const [ amount, setAmount ] = useState(100)
     const [ speed, setSpeed ] = useState(50)
@@ -26,8 +26,13 @@ export function RandomGenerator(props: RandomGeneratorProps) {
     const [ radius, setRadius ] = useState(8)
     const [ generateRadius, setGenerateRadius ] = useState(1024)
 
+    const pause = useCallback(() => {
+        setting.updateSetting('isPlay', false)
+        worker.requestWorker('pause')
+    }, [setting, worker])
+
     const randomGenerate = useCallback(async () => {
-        props.pause()
+        pause()
         await sleep(500)
         for (let i = 0; i < amount; i++) {
             const newPlanet = {
@@ -41,7 +46,7 @@ export function RandomGenerator(props: RandomGeneratorProps) {
             }
             props.addNewPlanet(newPlanet)
         }
-    }, [amount, generateRadius, mass, props, radius, speed])
+    }, [amount, generateRadius, mass, pause, props, radius, speed])
 
     return (
         <Controller left={20} bottom={180} minWidth={120}>

@@ -1,24 +1,24 @@
-import { useState, useEffect, useContext } from "react";
+import { useState, useContext } from "react";
 import { Controller, CheckBox, Inputs, NumberField, Divver, InputButton } from "../..";
+import { SettingContext } from "../../../context/setting";
 import { ToastContext } from "../../../context/toast";
 import { WorkerContext } from "../../../context/worker";
 
-import type { DrawerOption, UpdateDrawerOption } from '../../../types'
-
 interface SettingProps {
-    drawerOption: DrawerOption
-    updateDrawerOption: (newOption: UpdateDrawerOption) => void
+
 }
 
 export function Setting(props: SettingProps) {
     const toast = useContext(ToastContext)
     const worker = useContext(WorkerContext)
+    const setting = useContext(SettingContext)
 
     const [ showOption, setShowOption ] = useState(false)
     const [ showDebugOption, setShowDebugOption ] = useState(false)
 
     const [ speedRate, setSpeedRate ] = useState(500)
     const [ spaceG, setSpaceG ] = useState(100)
+    
     
 
     return (
@@ -32,33 +32,33 @@ export function Setting(props: SettingProps) {
                     <Divver />
                     <CheckBox 
                         label="행성 속도"
-                        value={props.drawerOption.isShowPlanetVector} 
-                        onClick={() => {props.updateDrawerOption({'isShowPlanetVector': !props.drawerOption.isShowPlanetVector})}} 
+                        value={setting.setting.drawerIsShowPlanetVector}
+                        onClick={() =>  setting.updateSetting('drawerIsShowPlanetVector', !setting.setting.drawerIsShowPlanetVector)} 
                     />
                     <CheckBox 
                         label="행성 정보" 
-                        value={props.drawerOption.isShowPlanetInfo} 
-                        onClick={() => {props.updateDrawerOption({'isShowPlanetInfo': !props.drawerOption.isShowPlanetInfo})}} 
+                        value={setting.setting.drawerIsShowPlanetInfo} 
+                        onClick={() => setting.updateSetting('drawerIsShowPlanetInfo', setting.setting.drawerIsShowPlanetInfo)} 
                     />
                     <Divver />
                     <CheckBox 
                         label="그리드" 
-                        value={props.drawerOption.isShowGrid} 
-                        onClick={() => {props.updateDrawerOption({'isShowGrid': !props.drawerOption.isShowGrid})}} 
+                        value={setting.setting.drawerIsShowGrid} 
+                        onClick={() => setting.updateSetting('drawerIsShowGrid', !setting.setting.drawerIsShowGrid)} 
                     />
-                    { props.drawerOption.isShowGrid && <>
+                    { setting.setting.drawerIsShowGrid && <>
                         <NumberField 
                             label="그리드 간격" 
-                            value={props.drawerOption.gridStep} 
-                            onChange={(value) => props.updateDrawerOption({'gridStep': value})} 
+                            value={setting.setting.drawerGridStep} 
+                            onChange={(value) => setting.updateSetting('drawerGridStep', value)} 
                             min={10} 
                             max={1000} 
                             step={10} 
                         />
                         <NumberField 
                             label="그리드 밝기" 
-                            value={props.drawerOption.gridBrightness} 
-                            onChange={(value) => props.updateDrawerOption({'gridBrightness': value})} 
+                            value={setting.setting.drawerGridBrightness} 
+                            onChange={(value) => setting.updateSetting('drawerGridBrightness', value)} 
                             min={0} 
                             max={100} 
                             step={1} 
@@ -79,11 +79,11 @@ export function Setting(props: SettingProps) {
                     <Divver />
                     <CheckBox
                         label="FPS / UPS 표시" 
-                        value={props.drawerOption.isShowFPS_UPS} 
-                        onClick={() => {props.updateDrawerOption({'isShowFPS_UPS': !props.drawerOption.isShowFPS_UPS})}} 
+                        value={setting.setting.drawerIsShowFPS_UPS} 
+                        onClick={() => setting.updateSetting('drawerIsShowFPS_UPS', !setting.setting.drawerIsShowFPS_UPS)} 
                     />
-                    <CheckBox label="FPS 그래프 표시" value={props.drawerOption.DEBUS_isShowFPS} onClick={() => {props.updateDrawerOption({'DEBUS_isShowFPS': !props.drawerOption.DEBUS_isShowFPS})}} />
-                    <CheckBox label="디버그 행성 정보" value={props.drawerOption.DEBUG_isShowPlanetInfo} onClick={() => {props.updateDrawerOption({'DEBUG_isShowPlanetInfo': !props.drawerOption.DEBUG_isShowPlanetInfo})}} />
+                    <CheckBox label="FPS 그래프 표시" value={setting.setting.DEBUS_drawerIsShowFPS} onClick={() => setting.updateSetting('drawerIsShowFPS_UPS', !setting.setting.DEBUS_drawerIsShowFPS)} />
+                    <CheckBox label="디버그 행성 정보" value={setting.setting.DEBUG_drawerIsShowPlanetInfo} onClick={() => setting.updateSetting('drawerIsShowPlanetInfo', !setting.setting.DEBUG_drawerIsShowPlanetInfo)} />
                     <NumberField 
                         label="SpeedRate" 
                         value={speedRate} 
