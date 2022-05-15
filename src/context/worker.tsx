@@ -2,7 +2,7 @@ import React, { createContext, useEffect, useRef, useCallback } from "react";
 
 export const WorkerContext = createContext({
     requestWorker: (code: string, data?:any) => {},
-    addListener: (code: string, callback: Function) => {},
+    addListener: (code: string, callback: (data: any) => any):symbol => Symbol(),
     removeListener: (symbol: symbol) => {}
 })
 
@@ -19,15 +19,12 @@ const WorkerProvider: React.FC<React.ReactNode> = ({children}) => {
 
     useEffect(() => {
         // 메세지 수신
-        worker.current.onmessage = (msg:any) => {          
-            for (let lister of Object.values(listeners.current)) {
-                if (lister.code === msg.data.code) {
-                    lister.callback(msg.data.data)
+        worker.current.onmessage = (msg:any) => {
+            for (let listenerSymbol of Object.getOwnPropertySymbols(listeners.current)) {
+                const listener = listeners.current[listenerSymbol]
+                if (listener.code === msg.data.code) {
+                    listener.callback(msg.data.data)
                 }
-            }
-
-            switch (msg.data.kind) {
-                case 'newPlanets':
             }
         }
     }, [])
@@ -41,7 +38,7 @@ const WorkerProvider: React.FC<React.ReactNode> = ({children}) => {
     }, [])
 
     // 리스너 추가
-    const addListener = useCallback((code: string, callback: Function):Symbol => {
+    const addListener = useCallback((code: string, callback: Function):symbol => {
         const symbol = Symbol(code)
         listeners.current = {
             ...listeners.current,

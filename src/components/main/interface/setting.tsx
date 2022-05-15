@@ -1,17 +1,18 @@
 import { useState, useEffect, useContext } from "react";
 import { Controller, CheckBox, Inputs, NumberField, Divver, InputButton } from "../..";
 import { ToastContext } from "../../../context/toast";
+import { WorkerContext } from "../../../context/worker";
 
 import type { DrawerOption, UpdateDrawerOption } from '../../../types'
 
 interface SettingProps {
     drawerOption: DrawerOption
-    worker: any
     updateDrawerOption: (newOption: UpdateDrawerOption) => void
 }
 
 export function Setting(props: SettingProps) {
     const toast = useContext(ToastContext)
+    const worker = useContext(WorkerContext)
 
     const [ showOption, setShowOption ] = useState(false)
     const [ showDebugOption, setShowDebugOption ] = useState(false)
@@ -67,7 +68,7 @@ export function Setting(props: SettingProps) {
                     <NumberField 
                         label="중력상수" 
                         value={spaceG} 
-                        onChange={value => {setSpaceG(value); props.worker.postMessage({kind:'updateSpaceG', value})}} 
+                        onChange={value => {setSpaceG(value); worker.requestWorker('updateSpaceG', value)}} 
                         min={1} 
                         max={10000} 
                         step={1} 
@@ -86,14 +87,14 @@ export function Setting(props: SettingProps) {
                     <NumberField 
                         label="SpeedRate" 
                         value={speedRate} 
-                        onChange={value => {setSpeedRate(value); props.worker.postMessage({kind:'updateSpeedRate', value})}} 
+                        onChange={value => {setSpeedRate(value); worker.requestWorker('updateSpeedRate', value)}} 
                         min={0} 
                         max={1000} 
                         step={1} 
                     />
                     <InputButton 
                         label="Squawk"
-                        onClick={() => {props.worker.postMessage({kind:'SquawkYourParrot'}); toast('개발자 도구를 확인하세요.')}}
+                        onClick={() => {worker.requestWorker('SquawkYourParrot'); toast('개발자 도구를 확인하세요.')}}
                     />
                 </> }
             </Inputs>

@@ -2,13 +2,13 @@ import { useCallback, useEffect, useRef, useState, useContext } from "react"
 import styled from "styled-components"
 import { ToastContext } from "../context/toast";
 
-import type { NewPlanetOption, Planet } from '../types'
+import type { NewPlanetOption, NewPlanet } from '../types'
 
 interface CanvasProps {
     newPlanetOption: NewPlanetOption
     setCursorMode: Function;
     setMouseVector: Function;
-    addNewPlanet: (planet:Planet) => void;
+    addNewPlanet: (planet:NewPlanet) => void;
     screenPosition: {x: number, y: number}
     screenZoom: number
 }
@@ -102,7 +102,6 @@ export function VectorCanvas(props: CanvasProps){
         toast.on('행성 생성을 취소하려면 ESC를 누르세요')
 
         props.setCursorMode('create-vector')
-        props.setMouseVector({x: 0, y:0})
         const mousePos = getMousePos(event);
         if (!mousePos) return
         setIsPainting(true);
@@ -117,12 +116,11 @@ export function VectorCanvas(props: CanvasProps){
         paintTimer = setTimeout(() => {
             const newMousePosition = getMousePos(event);
             if (firstMousePosition && newMousePosition) {
-                props.setMouseVector({x: newMousePosition.x-firstMousePosition.x, y:newMousePosition.y-firstMousePosition.y})
                 setMousePosition(newMousePosition)
             }
             paintTimer = null
         }, 16)
-    },[firstMousePosition, getMousePos, isPainting, props]);
+    },[firstMousePosition, getMousePos, isPainting]);
 
     const cancelPaint = useCallback(() => {
         props.setCursorMode('create')

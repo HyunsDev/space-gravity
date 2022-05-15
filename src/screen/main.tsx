@@ -23,7 +23,7 @@ import FPSStats from "react-fps-stats";
 import { ToastContext } from "../context/toast";
 import { ReactComponent as GithubSvg } from '../assets/github.svg'
 
-import type { CursorMode, Planet, NewPlanetOption, UpdateNewPlanetOption, DrawerOption, UpdateDrawerOption } from "../types/";
+import type { CursorMode, NewPlanet, NewPlanetOption, UpdateNewPlanetOption, DrawerOption, UpdateDrawerOption } from "../types/";
 import { SettingContext } from "../context/setting";
 import { WorkerContext } from "../context/worker";
 
@@ -68,9 +68,8 @@ export default function Main() {
     const toast = useContext(ToastContext)
     const setting = useContext(SettingContext)
     const worker = useContext(WorkerContext)
-
-    const _worker = useRef<any>(null)
-    const [ planets, setPlanets ] = useState<{[key: string]: Planet}>({}) // 현재의 행성 정보
+    // const [ planets, setPlanets ] = useState<{[key: string]: Planet}>({}) // 현재의 행성 정보
+    const planets = useRef<{[key: string]: NewPlanet}>({})
 
     const newPlanetOptionRef = useRef<NewPlanetOption>({
         color: '',
@@ -141,16 +140,10 @@ export default function Main() {
         setDrawerOption(_newOption)
     }, [])
 
-    // 백그라운드
+    // 화면 포커스 여부
     useEffect(() => {
-        const focus = () => {
-            toast.off()
-        }
-
-        const blur = () => {
-            toast.on('화면에 포커스가 없습니다.\n키보드 콤보를 사용하려면 이곳을 클릭하세요')
-        }
-
+        const focus = () => toast.off()
+        const blur = () => toast.on('화면에 포커스가 없습니다.\n키보드 콤보를 사용하려면 이곳을 클릭하세요')
         window.addEventListener("focus", focus);
         window.addEventListener("blur", blur);
         return () => {
@@ -159,83 +152,53 @@ export default function Main() {
         }
     }, [toast])
 
-    // 시뮬레이터
-    useEffect(() => {
-        if (_worker.current) return
-        _worker.current = new Worker('./simulator.js')
-        _worker.current.postMessage({kind: 'ping'})
-
-        // 메세지 수신
-        _worker.current.onmessage = (msg:any) => {
-            switch (msg.data.kind) {
-                case 'newPlanets':
-                    setPlanets(msg.data.planets)
-                    break;
-                case 'pong':
-                    toast('시뮬레이터 연결됨')
-                    break
-                case 'ups':
-                    ups.current = msg.data.ups
-                    break
-            }
-        }
-    }, [toast])
-
-
-    // 새로운 행성 추가
     const addNewPlanet = useCallback((newPlanet) => {
-        if (!_worker.current) return
-        _worker.current.postMessage({kind: 'planetAdd', newPlanet: { id: uuidv4(), data: newPlanet }})
-    }, [])
+        worker.requestWorker('addPlanet', { id: uuidv4(), data: newPlanet })
+    }, [worker])
 
-    // 속도 변경
+    // 실행 속도 변경
     useEffect(() => {
-        if (!_worker.current) return
-        _worker.current.postMessage({kind: 'speedUpdate', speed})
-    }, [speed])
+        worker.requestWorker('updateSpeed', { speed })
+    }, [speed, worker])
 
     // 반지름 변경
     const changeRadius = useCallback((newRadius: number) => {
-        if (!_worker.current) return
         if (newRadius >= PLANET_MIN_RADIUS)
         updateNewPlanetOption({radius: newRadius})
     }, [updateNewPlanetOption])
 
     // 무게 변경
     const changeMass = useCallback((newMass: number) => {
-        if (!_worker.current) return
         if (newMass >= PLANET_MIN_WEIGHT)
-        // setMass(newMass)
         updateNewPlanetOption({mass: newMass})
     }, [updateNewPlanetOption])
 
-    // 재생, 일시정지
-    const pauseToggle = useCallback(() => {
-        if (!_worker.current) return
-        setPlay(!isPlay)
-        _worker.current.postMessage({kind: 'isPlay', isPlay: !isPlay})
-    }, [isPlay])
-
     const play = useCallback(() => {
-        if (!_worker.current) return
         setPlay(true)
-        _worker.current.postMessage({kind: 'isPlay', isPlay: true})
-    }, [])
+        worker.requestWorker('play')
+    }, [worker])
 
     const pause = useCallback(() => {
-        if (!_worker.current) return
         setPlay(false)
-        _worker.current.postMessage({kind: 'isPlay', isPlay: false})
-    }, [])
+        worker.requestWorker('pause')
+    }, [worker])
 
     // 시뮬레이터 리셋
-    const reset = useCallback(() => {
-        if (!_worker.current) return
-        _worker.current.postMessage({kind: 'reset'})
-        // _worker.current.terminate()
-        // _worker.current = new Worker('./simulator.js')
-        // _worker.current.postMessage({kind: 'ping'})
-    }, [])
+    const reset = useCallback(() => worker.requestWorker('reset'), [worker])
+
+
+    // 시뮬레이터
+    useEffect(() => {
+        const resultListener = worker.addListener('result', (data) => planets.current = data)
+        const pongListener = worker.addListener('pong', () => toast('시뮬레이터 연결됨'))
+        const upsListener = worker.addListener('ups', (data) => ups.current = data)
+        return () => {
+            worker.removeListener(resultListener)
+            worker.removeListener(pongListener)
+            worker.removeListener(upsListener)
+        }
+
+    }, [toast, worker])
 
     // 초기화
     useEffect(() => {
@@ -319,13 +282,13 @@ export default function Main() {
                 break
 
             case ' ':
-                pauseToggle()
+                ;(isPlay ? pause : play)()
                 break
 
             default: 
                 break
         }
-    }, [pauseToggle, screenPosition.x, screenPosition.y, updateNewPlanetOption])
+    }, [isPlay, pause, play, screenPosition.x, screenPosition.y, updateNewPlanetOption])
 
     const keyup = useCallback((e:any) => {
         switch(e.key) {
@@ -368,8 +331,6 @@ export default function Main() {
     return (
         <>  
             <Canvases>
-                
-
                 {
                     (drawerOption.isShowGrid) &&
                     <GridCanvas 
@@ -380,7 +341,6 @@ export default function Main() {
                 }
 
                 <PlanetCanvas
-                    planets={planets}
                     fps={fps}
                     drawerOption={drawerOption}
                     screenPosition={screenPosition}
@@ -430,13 +390,12 @@ export default function Main() {
             {drawerOption.DEBUS_isShowFPS && <FPSStats />}
             <Statistics 
                 fps_ups={`${fps.current} / ${ups.current}`}
-                planetQuota={Object.keys(planets).length}
+                planetQuota={Object.keys(planets.current).length}
                 drawerOption={drawerOption}
             />
             <Setting 
                 updateDrawerOption={updateDrawerOption}
                 drawerOption={drawerOption}
-                worker={_worker.current}
             />
 
             <RandomGenerator
@@ -465,7 +424,7 @@ export default function Main() {
             </Controller>
 
             <Controller left={20} bottom={20}>
-                <Button content={isPlay ? <Pause /> : <Play />} tooltip={isPlay ? '일시정지' : '재생'} onClick={pauseToggle} />
+                <Button content={isPlay ? <Pause /> : <Play />} tooltip={isPlay ? '일시정지' : '재생'} onClick={(isPlay ? pause : play)} />
                 <Button content={<Trash />} tooltip='행성 지우기 [ r ]' onClick={() => reset()} />
                 <Button content={<ArrowClockwise />} tooltip='새로고침 [ ctrl r ]' onClick={() => window.location.reload() } />
                 <Button content={<CaretLeft  />} tooltip='느리게 [ < ]' onClick={() => speed-0.5 > 0 && setSpeed(speed-0.5)} />

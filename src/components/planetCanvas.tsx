@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useRef } from "react"
+import { useCallback, useContext, useEffect, useRef, useState } from "react"
 import styled from "styled-components"
-import type { Planet, DrawerOption } from '../types'
+import { PlanetsContext } from "../context/planets"
+import type { NewPlanet, DrawerOption } from '../types'
 
 interface CanvasProps {
-    planets: {[key: string]: Planet};
     fps: any
     drawerOption: DrawerOption
     screenPosition: {x: number, y: number}
@@ -24,6 +24,7 @@ let frameRateStartTime = new Date()
 export function PlanetCanvas(props: CanvasProps){
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const requestAnimationRef = useRef<any>(null);
+    const planets = useContext(PlanetsContext).planets
 
     useEffect(() => {
         const resize = () => {
@@ -49,7 +50,7 @@ export function PlanetCanvas(props: CanvasProps){
     }, [props.screenPosition.y, props.screenZoom])
 
     // 원 그리기
-    const drawPlanet = useCallback((planet: Planet, id:string, context:CanvasRenderingContext2D ) => {
+    const drawPlanet = useCallback((planet: NewPlanet, id:string, context:CanvasRenderingContext2D ) => {
         context.beginPath()
 
         context.arc(planet.x, planet.y, planet.radius * props.screenZoom, 0, 2*Math.PI) 
@@ -78,7 +79,7 @@ export function PlanetCanvas(props: CanvasProps){
     }, [props.drawerOption.DEBUG_isShowPlanetInfo, props.drawerOption.isShowPlanetInfo, props.screenZoom])
 
     // 선 그리기
-    const drawLine = useCallback((planet: Planet, context:CanvasRenderingContext2D ) => {
+    const drawLine = useCallback((planet: NewPlanet, context:CanvasRenderingContext2D ) => {
           // 선 색깔
         context.lineJoin = 'round';	// 선 끄트머리(?)
         context.lineWidth = 1;		// 선 굵기
@@ -117,8 +118,8 @@ export function PlanetCanvas(props: CanvasProps){
         context.beginPath()
         context.clearRect(0, 0, canvas.width, canvas.height);
 
-        Object.keys(props.planets).forEach(e => {
-            const _planet = props.planets[e]
+        Object.keys(planets).forEach(e => {
+            const _planet = planets[e]
             const planet = {
                 ..._planet,
                 x: getX(_planet.x),
@@ -130,15 +131,12 @@ export function PlanetCanvas(props: CanvasProps){
             if (props.drawerOption.isShowPlanetVector) drawLine(planet, context)
         })
         requestAnimationRef.current = requestAnimationFrame(render);
-
         frameRateCount++
-
         if (frameRateCount === 60) {
             frameRateCount = 0
             props.fps.current = Math.round(60 / (new Date().getTime() - frameRateStartTime.getTime()) * 1000)
         }
-
-    }, [props.planets, props.screenZoom, props.drawerOption.isShowPlanetVector, props.fps, getX, getY, drawPlanet, drawLine])
+    }, [planets, props.screenZoom, props.drawerOption.isShowPlanetVector, props.fps, getX, getY, drawPlanet, drawLine])
 
     // 렌더링
     useEffect(() => {

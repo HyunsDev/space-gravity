@@ -3,6 +3,7 @@ import Router from './router'
 import ToastProvider from './context/toast';
 import SettingProvider from './context/setting';
 import WorkerProvider from './context/worker';
+import PlanetsProvider from './context/planets';
 
 function App() {
   return (
@@ -10,7 +11,9 @@ function App() {
       <ToastProvider>
         <SettingProvider>
           <WorkerProvider>
-            <Router />
+            <PlanetsProvider>
+              <Router />
+            </PlanetsProvider>
           </WorkerProvider>
         </SettingProvider>
       </ToastProvider>

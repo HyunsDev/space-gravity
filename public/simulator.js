@@ -81,7 +81,10 @@ function simulationLoop() {
     }
 
     planets = newPlanets
-    self.postMessage({kind: 'newPlanets', planets: newPlanets})
+    self.postMessage({code: 'result', data: {
+        loopId,
+        newPlanets
+    }})
 }
 
 let updateRateCount = 0
@@ -95,7 +98,7 @@ const loop = () => {
     if (updateRateCount === 60) {
         updateRateCount = 0
         const updateRate = Math.round(60 / (new Date() - updateRateStartTime) * 1000)
-        self.postMessage({kind: 'ups', ups: updateRate})
+        self.postMessage({code: 'ups', ups: updateRate})
     }
 }
 
@@ -104,28 +107,28 @@ const reset = () => {
     loopId = 0
     loopTimer && clearInterval(loopTimer)
     loopTimer = setInterval(loop, Math.round(16.6 / speed))
-    self.postMessage({kind: 'spaceG', spaceG: spaceG})
-    self.postMessage({kind: 'speedRate', speedRate: speedRate})
+    self.postMessage({code: 'spaceG', spaceG: spaceG})
+    self.postMessage({code: 'speedRate', speedRate: speedRate})
 }
 
 // IO
 self.addEventListener('message', event => {
-    switch (event.data.kind) {
+    switch (event.data.code) {
         case 'ping':
             reset()
-            self.postMessage({kind: 'pong'})
+            self.postMessage({code: 'pong'})
             break
 
-        case 'planetAdd':
-            planets[event.data.newPlanet.id] = event.data.newPlanet.data
-            self.postMessage({kind: 'newPlanets', planets: planets})
+        case 'addPlanet':
+            planets[event.data.data.id] = event.data.data.data
+            self.postMessage({code: 'newPlanets', planets: planets})
             break
 
         case 'planetList':
             planets = event.data.newPlanetList
             break
 
-        case 'speedUpdate':
+        case 'updateSpeed':
             speed = event.data.speed;
             loopTimer && clearInterval(loopTimer)
             loopTimer = setInterval(loop, Math.round(16 / speed))
@@ -135,8 +138,12 @@ self.addEventListener('message', event => {
             clearInterval(loopTimer)
             break
 
-        case 'isPlay':
-            isPlay = event.data.isPlay
+        case 'pause':
+            isPlay = false
+            break
+
+        case 'play':
+            isPlay = true
             break
 
         case 'reset':
@@ -154,7 +161,7 @@ self.addEventListener('message', event => {
             break
 
         case 'SquawkYourParrot':
-            self.postMessage({kind: 'Squawk', data: {
+            self.postMessage({code: 'Squawk', data: {
                 loopId,
                 planets,
                 speed,
@@ -173,6 +180,6 @@ self.addEventListener('message', event => {
             break
 
         default:
-            console.error(`Wrong Command: '${event.data.kind}' `)
+            console.error(`Wrong Command: '${event.data.code}' `)
     }
 })

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from "react"
 import styled from "styled-components"
-import type { Planet, DrawerOption } from '../types'
+import type { NewPlanet, DrawerOption } from '../types'
 
 interface CanvasProps {
     drawerOption: DrawerOption

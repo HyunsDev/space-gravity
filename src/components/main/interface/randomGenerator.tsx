@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { Controller, CheckBox, Inputs, NumberField, Divver, InputButton } from "../..";
 
-import type { DrawerOption, UpdateDrawerOption, Planet } from '../../../types'
+import type { DrawerOption, UpdateDrawerOption, NewPlanet } from '../../../types'
 
 function sleep(ms:number){
     return new Promise(resolve=>setTimeout(resolve,ms));
