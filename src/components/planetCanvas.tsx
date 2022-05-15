@@ -1,13 +1,11 @@
-import { useCallback, useEffect, useRef } from "react"
+import { useCallback, useContext, useEffect, useRef, useState } from "react"
 import styled from "styled-components"
-import type { Planet, DrawerOption } from '../types'
+import { PlanetsContext } from "../context/planets"
+import { SettingContext } from "../context/setting"
+import type { NewPlanet, DrawerOption } from '../types'
 
 interface CanvasProps {
-    planets: {[key: string]: Planet};
-    fps: any
-    drawerOption: DrawerOption
-    screenPosition: {x: number, y: number}
-    screenZoom: number
+    setFps: any;
 }
 
 const CanvasTag = styled.canvas`
@@ -16,14 +14,18 @@ const CanvasTag = styled.canvas`
     pointer-events: none;
     left: 0;
     top: 0;
+    z-index: -1;
 `
 
 let frameRateCount = 0
 let frameRateStartTime = new Date()
 
 export function PlanetCanvas(props: CanvasProps){
+    const setting = useContext(SettingContext)
+
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const requestAnimationRef = useRef<any>(null);
+    const planets = useContext(PlanetsContext).planets
 
     useEffect(() => {
         const resize = () => {
@@ -41,18 +43,30 @@ export function PlanetCanvas(props: CanvasProps){
     }, [])
 
     const getX = useCallback((x:number) => {
-        return (window.innerWidth / 2 + (props.screenPosition.x + x)*props.screenZoom)
-    }, [props.screenPosition.x, props.screenZoom])
+        return (window.innerWidth / 2 + (setting.setting.drawerScreenPosition.x + x)*setting.setting.drawerScreenZoom)
+    }, [setting.setting.drawerScreenPosition.x, setting.setting.drawerScreenZoom])
 
     const getY = useCallback((y:number) => {
-        return (window.innerHeight / 2 + (props.screenPosition.y + y)*props.screenZoom)
-    }, [props.screenPosition.y, props.screenZoom])
+        return (window.innerHeight / 2 + (setting.setting.drawerScreenPosition.y + y)*setting.setting.drawerScreenZoom)
+    }, [setting.setting.drawerScreenPosition.y, setting.setting.drawerScreenZoom])
 
-    // 원 그리기
-    const drawPlanet = useCallback((planet: Planet, id:string, context:CanvasRenderingContext2D ) => {
+    // 선 그리기
+    const drawLine = useCallback((x1:number, y1:number, x2:number, y2:number, color: string, context:CanvasRenderingContext2D ) => {
+      context.lineJoin = 'round';
+      context.lineWidth = 1;
+      context.beginPath();
+      context.strokeStyle = color;
+      context.moveTo(x1, y1);
+      context.lineTo(x2, y2);
+      context.closePath();
+      context.stroke();
+  }, []);
+
+    // 행성 그리기
+    const drawPlanet = useCallback((planet: NewPlanet, id:string, context:CanvasRenderingContext2D ) => {
         context.beginPath()
 
-        context.arc(planet.x, planet.y, planet.radius * props.screenZoom, 0, 2*Math.PI) 
+        context.arc(planet.x, planet.y, planet.radius * setting.setting.drawerScreenZoom, 0, 2*Math.PI) 
         context.fillStyle = planet.isFixed ? '#341014' : '#082340'
         context.fill()
     
@@ -60,7 +74,7 @@ export function PlanetCanvas(props: CanvasProps){
         context.lineWidth = 1;
         context.stroke()
 
-        if (props.drawerOption.isShowPlanetInfo) {
+        if (setting.setting.drawerIsShowPlanetInfo) {
             context.font = '12px sans-serif';
             context.fillStyle = "#b7b4c5";
             context.textAlign = 'center'
@@ -69,41 +83,51 @@ export function PlanetCanvas(props: CanvasProps){
             context.fillText(`속도 (${Math.round(planet.vx)}, ${Math.round(planet.vy)})`, planet.x, planet.y + planet.radius + 55);
         }
 
-        if (props.drawerOption.DEBUG_isShowPlanetInfo) {
+        if (setting.setting.DEBUG_drawerIsShowPlanetInfo) {
             context.font = '12px sans-serif';
             context.fillStyle = "#b7b4c5";
             context.textAlign = 'center'
             context.fillText(id, planet.x, planet.y + planet.radius + 70);
         }
-    }, [props.drawerOption.DEBUG_isShowPlanetInfo, props.drawerOption.isShowPlanetInfo, props.screenZoom])
+    }, [setting.setting.DEBUG_drawerIsShowPlanetInfo, setting.setting.drawerIsShowPlanetInfo, setting.setting.drawerScreenZoom])
 
-    // 선 그리기
-    const drawLine = useCallback((planet: Planet, context:CanvasRenderingContext2D ) => {
-          // 선 색깔
-        context.lineJoin = 'round';	// 선 끄트머리(?)
-        context.lineWidth = 1;		// 선 굵기
+    // 속도 벡터 그리기
+    const drawVelocity = useCallback((planet: NewPlanet, context:CanvasRenderingContext2D ) => {
+        drawLine(planet.x, planet.y, planet.x + planet.vx, planet.y + planet.vy, 'green', context)
 
-        context.beginPath();
-        context.strokeStyle = "green";
-        context.moveTo(planet.x, planet.y);
-        context.lineTo(planet.x + planet.vx, planet.y + planet.vy);
-        context.closePath();
-        context.stroke();
+        // context.beginPath();
+        // context.strokeStyle = "red";
+        // context.moveTo(planet.x, planet.y);
+        // context.lineTo(planet.x + planet.vx, planet.y);
+        // context.closePath();
+        // context.stroke();
 
-        context.beginPath();
-        context.strokeStyle = "red";
-        context.moveTo(planet.x, planet.y);
-        context.lineTo(planet.x + planet.vx, planet.y);
-        context.closePath();
-        context.stroke();
+        // context.beginPath();
+        // context.strokeStyle = "#24b5ee";
+        // context.moveTo(planet.x, planet.y);
+        // context.lineTo(planet.x, planet.y + planet.vy);
+        // context.closePath();
+        // context.stroke();
+    }, [drawLine]);
 
-        context.beginPath();
-        context.strokeStyle = "#24b5ee";
-        context.moveTo(planet.x, planet.y);
-        context.lineTo(planet.x, planet.y + planet.vy);
-        context.closePath();
-        context.stroke();
-    }, []);
+    // 궤적 그리기
+    const drawTrajectory = useCallback((planet: NewPlanet, context:CanvasRenderingContext2D) => {
+        let i = {x: planet.x, y: planet.y}
+        let ii = 0
+        for (let trajectory of [...planet.trajectory].reverse()) {
+            // context.lineJoin = 'round';
+            context.lineWidth = setting.setting.drawerTrajectoryWidth === 0 ? planet.radius * 2 * setting.setting.drawerScreenZoom : setting.setting.drawerTrajectoryWidth;
+            context.beginPath();
+            context.strokeStyle = `rgba(28, 153, 249, ${0.5-ii})`;
+            context.moveTo(getX(i.x), getY(i.y));
+            context.lineTo(getX(trajectory.x), getY(trajectory.y));
+            context.closePath();
+            context.stroke();
+
+            i = trajectory
+            ii += setting.setting.drawerTrajectoryBrightnessStep
+        }
+    }, [getX, getY, setting.setting.drawerScreenZoom, setting.setting.drawerTrajectoryBrightnessStep, setting.setting.drawerTrajectoryWidth])
 
     // 렌더링 함수
     const render = useCallback(() => {
@@ -117,28 +141,27 @@ export function PlanetCanvas(props: CanvasProps){
         context.beginPath()
         context.clearRect(0, 0, canvas.width, canvas.height);
 
-        Object.keys(props.planets).forEach(e => {
-            const _planet = props.planets[e]
+        if (!planets) return
+        Object.keys(planets).forEach(e => {
+            const _planet = planets[e]
+            if (setting.setting.drawerIsShowTrajectory) drawTrajectory(_planet, context)
             const planet = {
                 ..._planet,
                 x: getX(_planet.x),
                 y: getY(_planet.y),
-                vx: _planet.vx * props.screenZoom,
-                vy: _planet.vy * props.screenZoom,
+                vx: _planet.vx * setting.setting.drawerScreenZoom,
+                vy: _planet.vy * setting.setting.drawerScreenZoom,
             }
             drawPlanet(planet, e, context)
-            if (props.drawerOption.isShowPlanetVector) drawLine(planet, context)
+            if (setting.setting.drawerIsShowPlanetVector) drawVelocity(planet, context)
         })
         requestAnimationRef.current = requestAnimationFrame(render);
-
         frameRateCount++
-
         if (frameRateCount === 60) {
             frameRateCount = 0
-            props.fps.current = Math.round(60 / (new Date().getTime() - frameRateStartTime.getTime()) * 1000)
+            props.setFps(Math.round(60 / (new Date().getTime() - frameRateStartTime.getTime()) * 1000))
         }
-
-    }, [props.planets, props.screenZoom, props.drawerOption.isShowPlanetVector, props.fps, getX, getY, drawPlanet, drawLine])
+    }, [planets, setting.setting.drawerIsShowTrajectory, setting.setting.drawerScreenZoom, setting.setting.drawerIsShowPlanetVector, drawTrajectory, getX, getY, drawPlanet, drawVelocity, props])
 
     // 렌더링
     useEffect(() => {

@@ -1,4 +1,4 @@
-interface Planet {
+interface NewPlanet {
     mass: number;
     radius: number;
     x: number;
@@ -7,6 +7,7 @@ interface Planet {
     vy: number;
     color?: string;
     isFixed: boolean;
+    trajectory: {x: number, y: number}[];
 }
 
 interface NewPlanetOption {
@@ -23,4 +24,16 @@ interface UpdateNewPlanetOption {
     radius?: number;
 }
 
-export type { Planet, NewPlanetOption, UpdateNewPlanetOption}
+interface Planet {
+    mass: number;
+    radius: number;
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    color?: string;
+    isFixed: boolean;
+    trajectory: {x: number, y: number}[];
+}
+
+export type { Planet, NewPlanet, NewPlanetOption, UpdateNewPlanetOption}

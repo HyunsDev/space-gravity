@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useContext, useEffect, useRef, useState } from "react"
 import styled from "styled-components"
-
-import type { CursorMode, NewPlanetOption } from '../types'
+import { SettingContext } from "../context/setting";
 
 interface MousePos {
     x: number;
@@ -9,11 +8,7 @@ interface MousePos {
 }
 
 interface CursorProps {
-    radius: number;
     label?: string[];
-    cursorMode: CursorMode;
-    NewPlanetOption: NewPlanetOption;
-    screenZoom: number;
 }
 
 const CursorDiv = styled.div`
@@ -21,12 +16,18 @@ const CursorDiv = styled.div`
     pointer-events: none;
 `
 
-const CursorBorder = styled.div<CursorProps>`
+interface CursorBorderType {
+    radius: number
+    screenZoom: number
+    isFixed: boolean
+}
+
+const CursorBorder = styled.div<CursorBorderType>`
     width: ${props => props.radius*2*props.screenZoom}px;
     height: ${props => props.radius*2*props.screenZoom}px;
     box-sizing: border-box;
     border-radius: 99999px;
-    border: solid 1px ${props => props.NewPlanetOption.isFixed ? '#d45e5e' : '#ffffff' };
+    border: solid 1px ${props => props.isFixed ? '#d45e5e' : '#ffffff' };
 `
 
 const Divver = styled.div`
@@ -49,6 +50,8 @@ const Label = styled.div`
 `
 
 export function Cursor(props: CursorProps) {
+    const setting = useContext(SettingContext)
+
     const ref = useRef<HTMLDivElement>(null)
     const lastMousePos = useRef<any>()
     const [ isMouseDown, setMouseDown ] = useState(false)
@@ -81,7 +84,7 @@ export function Cursor(props: CursorProps) {
         if (!mousePos) return
         ref.current.style.top = `${mousePos.y}px`
         ref.current.style.left = `${mousePos.x}px`
-    }, [props.radius, props.screenZoom])
+    }, [setting.setting.drawerScreenZoom, setting.setting.newPlanetRadius, setting.setting.newPlanetMass])
 
     // 벡터 그리기 시작
     const startVector = useCallback(() => {
@@ -107,7 +110,11 @@ export function Cursor(props: CursorProps) {
 
     return (
         <CursorDiv ref={ref}>
-            {isMouseDown ? <></> : <CursorBorder {...props} />}
+            {isMouseDown ? <></> : <CursorBorder
+                isFixed={setting.setting.newPlanetIsFixed}
+                radius={setting.setting.newPlanetRadius}
+                screenZoom={setting.setting.drawerScreenZoom}
+                />}
             { 
                 props.label && <Divver><Label>{props.label.map((e,i) => <p key={i}>{e}</p>)}</Label></Divver>
             }

@@ -1,10 +1,8 @@
-import { useCallback, useEffect, useState, useRef } from "react"
+import { useCallback, useEffect, useState, useRef, useContext } from "react"
 import styled from "styled-components"
+import { SettingContext } from "../context/setting";
 
 interface CanvasProps {
-    setScreenPosition: Function
-    screenPosition: {x: number, y: number}
-    screenZoom: number
 }
 
 interface MousePos {
@@ -22,8 +20,10 @@ const MoveDiv = styled.div<{isMoving: boolean}>`
 `
 
 export function Move(props: CanvasProps){
+    const setting = useContext(SettingContext)
+
     const MoveRef = useRef<HTMLDivElement | null>(null)
-    const [ firstScreenPosition, setFirstScreenPosition ] = useState(props.screenPosition)
+    const [ firstScreenPosition, setFirstScreenPosition ] = useState(setting.setting.drawerScreenPosition)
     const [ firstMousePosition, setFirstMousePosition ] = useState<MousePos | undefined>(undefined)
     const [ isMoving, setIsMoving ] = useState(false);
 
@@ -36,12 +36,12 @@ export function Move(props: CanvasProps){
 
     // 이동 시작
     const startMove = useCallback((event: MouseEvent) => {
-        setFirstScreenPosition(props.screenPosition)
+        setFirstScreenPosition(setting.setting.drawerScreenPosition)
         const mousePos = getMousePos(event);
         if (!mousePos) return
         setIsMoving(true);
         setFirstMousePosition(mousePos)
-    }, [getMousePos, props.screenPosition]);
+    }, [getMousePos, setting.setting.drawerScreenPosition]);
 
     // 이동
     const move = useCallback((event: MouseEvent) => {
@@ -52,12 +52,12 @@ export function Move(props: CanvasProps){
         if (!firstMousePosition) return
         
         const newScreenPosition = {
-            x: firstScreenPosition.x + (newMousePosition.x - firstMousePosition.x) / props.screenZoom,
-            y: firstScreenPosition.y + (newMousePosition.y - firstMousePosition.y) / props.screenZoom
+            x: firstScreenPosition.x + (newMousePosition.x - firstMousePosition.x) / setting.setting.drawerScreenZoom,
+            y: firstScreenPosition.y + (newMousePosition.y - firstMousePosition.y) / setting.setting.drawerScreenZoom
         }
-        props.setScreenPosition(newScreenPosition)
+        setting.updateSetting('drawerScreenPosition', newScreenPosition)
 
-    }, [firstMousePosition, firstScreenPosition.x, firstScreenPosition.y, getMousePos, isMoving, props]);
+    }, [firstMousePosition, firstScreenPosition.x, firstScreenPosition.y, getMousePos, isMoving, setting]);
 
     // 이동 끝
     const endMove = useCallback(() => {

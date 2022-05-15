@@ -218,8 +218,10 @@ export function NumberField(props: NumberFieldProps) {
     }, [props.value])
 
     const numberValid = () => {
-        if (props.min <= value && props.max >= value && value % props.step === 0) {
-            props.onChange(value)
+        if (props.min <= value && props.max >= value) {
+            if (!Number.isInteger(value) || value % props.step === 0) {
+                props.onChange(value)
+            }
         } else {
             setValue(props.value)
         }

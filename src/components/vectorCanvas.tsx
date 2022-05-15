@@ -1,16 +1,13 @@
 import { useCallback, useEffect, useRef, useState, useContext } from "react"
 import styled from "styled-components"
+import { SettingContext } from "../context/setting";
 import { ToastContext } from "../context/toast";
 
-import type { NewPlanetOption, Planet } from '../types'
+import type { NewPlanet } from '../types'
 
 interface CanvasProps {
-    newPlanetOption: NewPlanetOption
-    setCursorMode: Function;
     setMouseVector: Function;
-    addNewPlanet: (planet:Planet) => void;
-    screenPosition: {x: number, y: number}
-    screenZoom: number
+    addNewPlanet: (planet:NewPlanet) => void;
 }
 
 interface MousePos {
@@ -23,12 +20,15 @@ const CanvasTag = styled.canvas`
     position: absolute;
     left: 0;
     top: 0;
+    z-index: ${(props: {isPainting: boolean}) => props.isPainting ? 9999 : 0};
 `
 
 let paintTimer: NodeJS.Timeout | null = null;
 
 export function VectorCanvas(props: CanvasProps){
     const toast = useContext(ToastContext)
+    const setting = useContext(SettingContext)
+
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const requestAnimationRef = useRef<any>(null);
     const [ firstMousePosition, setFirstMousePosition ] = useState<MousePos | undefined>(undefined)
@@ -62,7 +62,9 @@ export function VectorCanvas(props: CanvasProps){
     // 선 그리기
     const drawLine = useCallback((originalMousePosition: MousePos, newMousePosition: MousePos) => {
         if (!canvasRef.current) return;
-        if (props.newPlanetOption.isFixed) return;
+        if (setting.setting.newPlanetIsFixed) return;
+        
+        
 
         const canvas: HTMLCanvasElement = canvasRef.current;
         const context = canvas.getContext('2d');
@@ -79,7 +81,7 @@ export function VectorCanvas(props: CanvasProps){
 
             context.stroke();
         }
-    }, [props.newPlanetOption.isFixed]);
+    }, [setting.setting.newPlanetIsFixed]);
 
     // 원 그리기
     const drawCircle = useCallback((mousePos: MousePos) => {
@@ -89,26 +91,24 @@ export function VectorCanvas(props: CanvasProps){
         if(!context) return
         
         context.beginPath()
-        context.arc(mousePos.x, mousePos.y, props.newPlanetOption.radius*props.screenZoom, 0, 2*Math.PI) 
-        context.fillStyle = props.newPlanetOption.isFixed ? '#f93d1c33' : '#f9951c33'
+        context.arc(mousePos.x, mousePos.y, setting.setting.newPlanetRadius*setting.setting.drawerScreenZoom, 0, 2*Math.PI) 
+        context.fillStyle = setting.setting.newPlanetIsFixed ? '#f93d1c33' : '#f9951c33'
         context.fill()
-        context.strokeStyle = props.newPlanetOption.isFixed ? '#f93d1c' : "#f9951c";
+        context.strokeStyle = setting.setting.newPlanetIsFixed ? '#f93d1c' : "#f9951c";
         context.lineWidth = 1;
         context.stroke()
-    }, [props.newPlanetOption.isFixed, props.newPlanetOption.radius, props.screenZoom])
+    }, [setting.setting.newPlanetIsFixed, setting.setting.newPlanetRadius, setting.setting.drawerScreenZoom])
 
     // 선 시작
     const startPaint = useCallback((event: MouseEvent) => {
         toast.on('행성 생성을 취소하려면 ESC를 누르세요')
-
-        props.setCursorMode('create-vector')
-        props.setMouseVector({x: 0, y:0})
+        setting.updateSetting('cursorMode', 'create-vector')
         const mousePos = getMousePos(event);
         if (!mousePos) return
         setIsPainting(true);
         setMousePosition(mousePos);
         setFirstMousePosition(mousePos)
-    }, [getMousePos, props, toast]);
+    }, [getMousePos, setting, toast]);
 
     const paint = useCallback((event: MouseEvent) => {
         event.preventDefault();
@@ -117,15 +117,14 @@ export function VectorCanvas(props: CanvasProps){
         paintTimer = setTimeout(() => {
             const newMousePosition = getMousePos(event);
             if (firstMousePosition && newMousePosition) {
-                props.setMouseVector({x: newMousePosition.x-firstMousePosition.x, y:newMousePosition.y-firstMousePosition.y})
                 setMousePosition(newMousePosition)
             }
             paintTimer = null
         }, 16)
-    },[firstMousePosition, getMousePos, isPainting, props]);
+    },[firstMousePosition, getMousePos, isPainting]);
 
     const cancelPaint = useCallback(() => {
-        props.setCursorMode('create')
+        setting.updateSetting('cursorMode', 'create')
         if (!canvasRef.current) return;
         const canvas: HTMLCanvasElement = canvasRef.current;
         const context = canvas.getContext('2d');
@@ -137,7 +136,7 @@ export function VectorCanvas(props: CanvasProps){
             setIsPainting(false);
             context.clearRect(0, 0, canvas.width, canvas.height);
         }
-    }, [firstMousePosition, isPainting, mousePosition, props, toast])
+    }, [firstMousePosition, isPainting, mousePosition, setting, toast])
     
     useEffect(() => {
         const cancel = (e:KeyboardEvent) => {
@@ -150,7 +149,8 @@ export function VectorCanvas(props: CanvasProps){
     }, [cancelPaint])
     
     const exitPaint = useCallback(() => {
-        props.setCursorMode('create')
+        setting.updateSetting('cursorMode', 'create')
+
         if (!canvasRef.current) return;
         const canvas: HTMLCanvasElement = canvasRef.current;
         const context = canvas.getContext('2d');
@@ -159,20 +159,25 @@ export function VectorCanvas(props: CanvasProps){
         if (isPainting) {
             if (!mousePosition || !firstMousePosition) return
             toast.off()
-            const planet = {
-                x: (firstMousePosition.x - (window.innerWidth / 2 + props.screenPosition.x)) / props.screenZoom,
-                y: (firstMousePosition.y - (window.innerHeight / 2 + props.screenPosition.y)) / props.screenZoom,
-                vx: props.newPlanetOption.isFixed ? 0 : (mousePosition.x-firstMousePosition.x) / props.screenZoom,
-                vy: props.newPlanetOption.isFixed ? 0 : (mousePosition.y-firstMousePosition.y) / props.screenZoom,
-                mass: props.newPlanetOption.mass,
-                radius: props.newPlanetOption.radius,
-                isFixed: props.newPlanetOption.isFixed
+            const x = (firstMousePosition.x - (window.innerWidth / 2 + setting.setting.drawerScreenPosition.x)) / setting.setting.drawerScreenZoom
+            const y = (firstMousePosition.y - (window.innerHeight / 2 + setting.setting.drawerScreenPosition.y)) / setting.setting.drawerScreenZoom
+            const xy = {x, y}
+
+            const planet:NewPlanet = {
+                x,
+                y,
+                vx: setting.setting.newPlanetIsFixed ? 0 : (mousePosition.x-firstMousePosition.x) / setting.setting.drawerScreenZoom,
+                vy: setting.setting.newPlanetIsFixed ? 0 : (mousePosition.y-firstMousePosition.y) / setting.setting.drawerScreenZoom,
+                mass: setting.setting.newPlanetMass,
+                radius: setting.setting.newPlanetRadius,
+                isFixed: setting.setting.newPlanetIsFixed,
+                trajectory: [xy],
             }
             props.addNewPlanet(planet)
             setIsPainting(false);
             context.clearRect(0, 0, canvas.width, canvas.height);
         }
-    }, [firstMousePosition, isPainting, mousePosition, props, toast]);
+    }, [firstMousePosition, isPainting, mousePosition, props, setting, toast]);
 
     // 렌더링 함수
     const render = useCallback(() => {
@@ -216,6 +221,6 @@ export function VectorCanvas(props: CanvasProps){
     }, [exitPaint, paint, startPaint])
 
     return (
-        <CanvasTag ref={canvasRef} />
+        <CanvasTag isPainting={isPainting} ref={canvasRef} />
     )
 }
