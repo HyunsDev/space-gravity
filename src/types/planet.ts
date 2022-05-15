@@ -7,6 +7,7 @@ interface NewPlanet {
     vy: number;
     color?: string;
     isFixed: boolean;
+    trajectory: {x: number, y: number}[];
 }
 
 interface NewPlanetOption {
@@ -32,6 +33,7 @@ interface Planet {
     vy: number;
     color?: string;
     isFixed: boolean;
+    trajectory: {x: number, y: number}[];
 }
 
 export type { Planet, NewPlanet, NewPlanetOption, UpdateNewPlanetOption}

@@ -21,12 +21,18 @@ interface Setting {
     drawerScreenPosition: {x: number, y: number},
     drawerScreenZoom: number,
 
+    drawerIsShowTrajectory: boolean;
+    drawerTrajectoryStep: number;
+    drawerTrajectoryLength: number;
+    drawerTrajectoryBrightnessStep: number;
+    drawerTrajectoryWidth: number;
+
     isPlay: boolean,
     simulatorSpeed: number,
     cursorMode: CursorMode,
 
     DEBUG_drawerIsShowPlanetInfo: boolean,
-    DEBUS_drawerIsShowFPS: boolean,
+    DEBUG_drawerIsShowFPS: boolean,
 }
 
 export type { Setting } 

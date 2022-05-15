@@ -7,12 +7,18 @@ const initSetting: Setting = {
     PLANET_MIN_RADIUS: 4,
     WHEEL_STEP: 0.25,
 
-    drawerIsShowPlanetVector: true,
+    drawerIsShowPlanetVector: false,
     drawerIsShowPlanetInfo: false,
     drawerIsShowGrid: true,
     drawerGridBrightness: 15,
     drawerGridStep: 20,
     drawerIsShowFPS_UPS: false,
+
+    drawerIsShowTrajectory: true,
+    drawerTrajectoryStep: 50,
+    drawerTrajectoryBrightnessStep: 0.05,
+    drawerTrajectoryLength: 10,
+    drawerTrajectoryWidth: 0,
 
     drawerScreenPosition: { x: 0, y: 0 },
     drawerScreenZoom: 1,
@@ -22,7 +28,7 @@ const initSetting: Setting = {
     cursorMode: 'create',
 
     DEBUG_drawerIsShowPlanetInfo: false,
-    DEBUS_drawerIsShowFPS: false,
+    DEBUG_drawerIsShowFPS: false,
 
     newPlanetColor: '',
     newPlanetIsFixed: false,
@@ -34,7 +40,6 @@ export const SettingContext = createContext({
     setting: initSetting,
     setSetting: (setting: Setting) => {},
     updateSetting: <T extends keyof Setting>(key: T, value: Setting[T]) => {}
-
 })
 
 const SettingProvider: React.FC<React.ReactNode> = ({children}) => {

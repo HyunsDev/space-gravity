@@ -8,6 +8,8 @@ let speed = 1
 let isPlay = true
 let speedRate = 500
 let spaceG = 100
+let trajectoryStep = 5
+let trajectoryLength = 50
 
 const getSquaredDistance = (planet, targetPlanet) => {
     return (planet.x - targetPlanet.x)**2 + (planet.y - targetPlanet.y)**2
@@ -73,6 +75,14 @@ function simulationLoop() {
             newPlanets[planetId].vy = newPlanets[planetId].vy + a.ay
         }
 
+        if (loopId % trajectoryStep === 0) {
+            while (Object.keys(planet.trajectory).length >= trajectoryLength) {
+                planet.trajectory.shift()
+            }
+
+            planet.trajectory.push({x: planet.x, y: planet.y})
+        }
+
         newPlanets[planetId] =  {
             ...planets[planetId],
             x: planet.x + planet.vx / speedRate,
@@ -121,7 +131,10 @@ self.addEventListener('message', event => {
 
         case 'addPlanet':
             planets[event.data.data.id] = event.data.data.data
-            self.postMessage({code: 'newPlanets', planets: planets})
+            self.postMessage({code: 'result', data: {
+                loopId,
+                newPlanets: planets
+            }})
             break
 
         case 'planetList':
@@ -160,6 +173,14 @@ self.addEventListener('message', event => {
             console.log('updateSpeedRate', speedRate)
             break
 
+        case 'updateTrajectoryStep':
+            trajectoryStep = event.data.data
+            break
+
+        case 'updateTrajectoryLength':
+            trajectoryLength = event.data.data
+            break
+
         case 'SquawkYourParrot':
             self.postMessage({code: 'Squawk', data: {
                 loopId,
@@ -167,7 +188,9 @@ self.addEventListener('message', event => {
                 speed,
                 isPlay,
                 speedRate,
-                spaceG
+                spaceG,
+                trajectoryStep,
+                trajectoryLength
             }})
             console.log( {
                 loopId,
@@ -175,7 +198,9 @@ self.addEventListener('message', event => {
                 speed,
                 isPlay,
                 speedRate,
-                spaceG
+                spaceG,
+                trajectoryStep,
+                trajectoryLength
             })
             break
 

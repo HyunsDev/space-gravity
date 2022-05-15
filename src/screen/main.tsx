@@ -98,8 +98,10 @@ export default function Main() {
     // const [ cursorMode, setCursorMode ] = useState<CursorMode>('create') // 커서 모드
     const [ mouseVector, setMouseVector ] = useState({x: 0, y: 0})
 
-    const fps = useRef(0)
-    const ups = useRef(0)
+    const [ fps, setFps ] = useState(0)
+    const [ ups, setUps ] = useState(0)
+    // const fps = useRef(0)
+    // const ups = useRef(0)
 
     // 커서 라벨 지정
     let cursorLabel
@@ -167,7 +169,7 @@ export default function Main() {
     useEffect(() => {
         const resultListener = worker.addListener('result', (data) => planets.current = data)
         const pongListener = worker.addListener('pong', () => toast('시뮬레이터 연결됨'))
-        const upsListener = worker.addListener('ups', (data) => ups.current = data)
+        const upsListener = worker.addListener('ups', (data) => setUps(data))
         return () => {
             worker.removeListener(resultListener)
             worker.removeListener(pongListener)
@@ -186,14 +188,12 @@ export default function Main() {
     // 키보드 입력 이벤트
     const keyPress = useCallback((e:any) => {
         switch(e.key) {
-            case '=': // 질량, 크기 증가
-                changeRadius(setting.setting.newPlanetRadius + 4)
-                changeMass(setting.setting.newPlanetMass+4)
+            case '=': // 질량 증가
+                changeMass(setting.setting.newPlanetMass+4);
                 break
 
-            case '-': // 질량, 크기 감소
-                changeRadius(setting.setting.newPlanetRadius-4)
-                changeMass(setting.setting.newPlanetMass-4)
+            case '-': // 질량 감소
+                changeMass(setting.setting.newPlanetMass-4);
                 break
 
             case '+': // 크기 증가
@@ -220,12 +220,10 @@ export default function Main() {
 
             case 'v':
                 setting.updateSetting('cursorMode', 'move')
-                // setCursorMode('move')
                 break
 
             case 'c':
                 setting.updateSetting('cursorMode', 'create')
-                // setCursorMode('create')
                 break
 
             default:
@@ -237,12 +235,10 @@ export default function Main() {
         switch(e.key) {
             case 'Control':
                 setting.updateSetting('newPlanetIsFixed', true)
-                // updateNewPlanetOption({isFixed: true})
                 break
             
             case 'ArrowUp':
             case 'w':
-                // setScreenPosition({x: screenPosition.x, y: screenPosition.y + 10})
                 setting.updateSetting('drawerScreenPosition', {x: setting.setting.drawerScreenPosition.x, y: setting.setting.drawerScreenPosition.y + 10})
                 break
 
@@ -254,13 +250,11 @@ export default function Main() {
             case 'ArrowLeft':
             case 'a':
                 setting.updateSetting('drawerScreenPosition', {x: setting.setting.drawerScreenPosition.x + 10, y: setting.setting.drawerScreenPosition.y})
-                // setScreenPosition({y: screenPosition.y, x: screenPosition.x + 10})
                 break
 
             case 'ArrowRight':
             case 'd':
                 setting.updateSetting('drawerScreenPosition', {x: setting.setting.drawerScreenPosition.x - 10, y: setting.setting.drawerScreenPosition.y})
-                // setScreenPosition({y: screenPosition.y, x: screenPosition.x - 10})
                 break
 
             case ' ':
@@ -318,7 +312,9 @@ export default function Main() {
                     (setting.setting.drawerIsShowGrid) && <GridCanvas />
                 }
 
-                <PlanetCanvas fps={fps} />
+                <PlanetCanvas 
+                    setFps={setFps}
+                />
                 
                 {
                     (setting.setting.cursorMode === 'create' || setting.setting.cursorMode === 'create-vector') &&
@@ -348,9 +344,9 @@ export default function Main() {
                 <GithubIcon /> 
             </a>
 
-            {setting.setting.DEBUS_drawerIsShowFPS && <FPSStats />}
+            {setting.setting.DEBUG_drawerIsShowFPS && <FPSStats />}
             <Statistics 
-                fps_ups={`${fps.current} / ${ups.current}`}
+                fps_ups={`${fps} / ${ups}`}
             />
             <Setting />
 

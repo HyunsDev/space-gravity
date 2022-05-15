@@ -20,6 +20,7 @@ const CanvasTag = styled.canvas`
     position: absolute;
     left: 0;
     top: 0;
+    z-index: ${(props: {isPainting: boolean}) => props.isPainting ? 9999 : 0};
 `
 
 let paintTimer: NodeJS.Timeout | null = null;
@@ -158,14 +159,19 @@ export function VectorCanvas(props: CanvasProps){
         if (isPainting) {
             if (!mousePosition || !firstMousePosition) return
             toast.off()
-            const planet = {
-                x: (firstMousePosition.x - (window.innerWidth / 2 + setting.setting.drawerScreenPosition.x)) / setting.setting.drawerScreenZoom,
-                y: (firstMousePosition.y - (window.innerHeight / 2 + setting.setting.drawerScreenPosition.y)) / setting.setting.drawerScreenZoom,
+            const x = (firstMousePosition.x - (window.innerWidth / 2 + setting.setting.drawerScreenPosition.x)) / setting.setting.drawerScreenZoom
+            const y = (firstMousePosition.y - (window.innerHeight / 2 + setting.setting.drawerScreenPosition.y)) / setting.setting.drawerScreenZoom
+            const xy = {x, y}
+
+            const planet:NewPlanet = {
+                x,
+                y,
                 vx: setting.setting.newPlanetIsFixed ? 0 : (mousePosition.x-firstMousePosition.x) / setting.setting.drawerScreenZoom,
                 vy: setting.setting.newPlanetIsFixed ? 0 : (mousePosition.y-firstMousePosition.y) / setting.setting.drawerScreenZoom,
                 mass: setting.setting.newPlanetMass,
                 radius: setting.setting.newPlanetRadius,
-                isFixed: setting.setting.newPlanetIsFixed
+                isFixed: setting.setting.newPlanetIsFixed,
+                trajectory: [xy],
             }
             props.addNewPlanet(planet)
             setIsPainting(false);
@@ -215,6 +221,6 @@ export function VectorCanvas(props: CanvasProps){
     }, [exitPaint, paint, startPaint])
 
     return (
-        <CanvasTag ref={canvasRef} />
+        <CanvasTag isPainting={isPainting} ref={canvasRef} />
     )
 }

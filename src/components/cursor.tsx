@@ -84,7 +84,7 @@ export function Cursor(props: CursorProps) {
         if (!mousePos) return
         ref.current.style.top = `${mousePos.y}px`
         ref.current.style.left = `${mousePos.x}px`
-    }, [setting.setting.drawerScreenZoom])
+    }, [setting.setting.drawerScreenZoom, setting.setting.newPlanetRadius, setting.setting.newPlanetMass])
 
     // 벡터 그리기 시작
     const startVector = useCallback(() => {

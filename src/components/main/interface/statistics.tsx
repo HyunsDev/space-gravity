@@ -14,7 +14,7 @@ export function Statistics(props: StatisticsProps) {
     return (
         <Controller right={20} top={20} minWidth={200}>
             <Labels>
-                <Label name={'현재 행성 수'} value={Object.keys(planets.planets).length}/>
+                <Label name={'현재 행성 수'} value={Object.keys(planets.planets || {}).length}/>
                 <Label name={'루프 수'} value={planets.loopId}/>
                 { setting.setting.drawerIsShowFPS_UPS && <Label name={'FPS / UPS'} value={props.fps_ups}/> }
             </Labels>
