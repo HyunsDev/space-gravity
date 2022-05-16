@@ -138,7 +138,7 @@ self.addEventListener('message', event => {
             break
 
         case 'planetList':
-            console.log(planets, event.data.data)
+            loopId = 0
             planets = event.data.data
             break
 
