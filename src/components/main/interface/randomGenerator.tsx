@@ -65,7 +65,7 @@ export function RandomGenerator(props: RandomGeneratorProps) {
     }, [amount, dontGenerateRadius, generateRadius, mass, pause, props, radius, speed])
 
     return (
-        <Controller left={20} bottom={180} minWidth={120}>
+        <Controller left={20} bottom={140} minWidth={120}>
             <Inputs>                
                 { showOption && <>
                     <InputButton 
@@ -123,7 +123,7 @@ export function RandomGenerator(props: RandomGeneratorProps) {
                     />
                     <Divver />
                 </> }
-                <CheckBox label="랜덤 생성 옴션 표시" value={showOption} onClick={() => {setShowOption(!showOption)}} />
+                <CheckBox label="랜덤 생성 메뉴" value={showOption} onClick={() => {setShowOption(!showOption)}} />
             </Inputs>
         </Controller>
     )

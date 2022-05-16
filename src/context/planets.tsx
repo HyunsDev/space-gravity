@@ -27,7 +27,10 @@ const PlanetsProvider: React.FC<React.ReactNode> = ({children}) => {
     }
 
     useEffect(() => {
-        worker.addListener('result', result)
+        const resultSymbol = worker.addListener('result', result)
+        return () => {
+            worker.removeListener(resultSymbol)
+        }
     }, [worker])
 
     return (

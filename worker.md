@@ -16,6 +16,7 @@
 |updateTrajectoryStep|궤적 스탭을 업데이트 합니다|value|
 |updateTrajectoryLength|궤적 힙 크기를 업데이트합니다|
 |SquawkYourParrot|시뮬레이션의 정보를 요청합니다|
+|extractReq|추출 요청||
 
 ## Worker Thread
 ---
@@ -25,3 +26,4 @@
 |ups|Update per Second|{ups: number}|
 |pong|ping에 대한 응답||
 |Squawk|SquawkYourParrot에 대한 응답, 시뮬레이터 전체 데이터|{}|
+|extract|시뮬레이션 데이터 추출|{}|

@@ -262,3 +262,60 @@ export function NumberField(props: NumberFieldProps) {
         </NumberFieldDivver>
     )
 }
+
+
+
+
+interface TextAreaProps {
+    value: string;
+    onChange: Function;
+    placeholder?: string;
+}
+
+
+const TextAreaDivver = styled.div`
+    border-radius: 4px;
+    transition: 200ms;
+    height: 100%;
+    display: flex;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    gap: 24px;
+    width: 100%;
+    font-size: 14px;
+    padding: 2px 4px;
+    z-index: 999;
+`
+
+const TextAreaInput = styled.textarea`
+    border: 0;
+    border-radius: 2px;
+    color: #ffffff;
+    background-color: rgba(226, 224, 222, 0);
+    transition: 100ms;
+    padding: 0px 4px;
+
+    &:hover {
+        background-color: rgba(226, 224, 222, 0.1);
+    }
+
+    &:focus {
+        outline: 0;
+        background-color: rgba(226, 224, 222, 0.15);
+    }
+
+    &::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+`
+
+export function TextArea(props: TextAreaProps) {
+    return (
+        <TextAreaDivver>
+            <TextAreaInput value={props.value} onChange={(e) => props.onChange(e.target.value)} placeholder={props.placeholder} />
+        </TextAreaDivver>
+    )
+}
