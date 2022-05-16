@@ -56,6 +56,8 @@ export function CoverPlanets(props: CoverPlanetsProps) {
             <Inputs>         
             { showOption && 
                 <>  
+                    <InputButton label="문자열 라이브러리" onClick={() => window.open('https://hyunsdev.notion.site/76792a5fcacf4d66a20af89d79bba9f1')} />
+                    <Divver />
                     <InputButton label="현재 시뮬레이션 내보내기" onClick={() => worker.requestWorker('extractReq')} />
                     <Divver />
                     <TextArea onChange={setValue} value={value} placeholder='문자열을 입력하세요' />
