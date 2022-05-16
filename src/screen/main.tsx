@@ -1,5 +1,5 @@
 import { Controller, Button, Label, Labels, VectorCanvas, Cursor, PlanetCanvas, GridCanvas, Move } from "../components";
-import { Statistics, Setting, RandomGenerator } from "../components/main/interface";
+import { Statistics, Setting, RandomGenerator, CoverPlanets } from "../components/main/interface";
 import { 
     Play,
     Pause,
@@ -69,39 +69,10 @@ export default function Main() {
     const setting = useContext(SettingContext)
     const worker = useContext(WorkerContext)
     const planets = useRef<{[key: string]: NewPlanet}>({})
-
-    // const newPlanetOptionRef = useRef<NewPlanetOption>({
-    //     color: '',
-    //     isFixed: false,
-    //     radius: 8,
-    //     mass: 8
-    // })
-    // const [ newPlanetOption, setNewPlanetOption ] = useState(newPlanetOptionRef.current)
-    
-    // const drawerOptionRef = useRef<DrawerOption>({
-    //     isShowPlanetVector: true,
-    //     isShowPlanetInfo: false,
-    //     isShowGrid: true,
-    //     gridBrightness: 15,
-    //     gridStep: 20,
-    //     isShowFPS_UPS: false,
-    //     DEBUG_isShowPlanetInfo: false,
-    //     DEBUS_isShowFPS: false,
-    // })
-    // const [ drawerOption, setDrawerOption ] = useState(drawerOptionRef.current)
-
-    // const [ screenPosition, setScreenPosition ] = useState({x: 0, y: 0})
-    // const [ screenZoom, setScreenZoom ] = useState(1)
-
-    // const [ isPlay, setPlay ] = useState(true) // 재생 여부
-    // const [ speed, setSpeed ] = useState(1) // 스피드
-    // const [ cursorMode, setCursorMode ] = useState<CursorMode>('create') // 커서 모드
     const [ mouseVector, setMouseVector ] = useState({x: 0, y: 0})
 
     const [ fps, setFps ] = useState(0)
     const [ ups, setUps ] = useState(0)
-    // const fps = useRef(0)
-    // const ups = useRef(0)
 
     // 커서 라벨 지정
     let cursorLabel
@@ -350,17 +321,19 @@ export default function Main() {
             />
             <Setting />
 
+            <CoverPlanets />
+
             <RandomGenerator
                 addNewPlanet={addNewPlanet}
             />
             
-            <Controller left={20} bottom={140}>
+            <Controller left={20} bottom={100}>
                 <Button content={<CursorIcon />} tooltip='선택' onClick={() => setting.updateSetting('cursorMode', 'select')} />
                 <Button content={<ArrowsOutCardinal />} tooltip='이동 [ v ]' onClick={() => setting.updateSetting('cursorMode', 'move')} />
                 <Button content={<PlusCircle />} tooltip='생성 [ c ]' onClick={() => setting.updateSetting('cursorMode', 'create')} />
             </Controller>
 
-            <Controller left={20} bottom={100}>
+            <Controller left={162} bottom={60}>
                 <Button content={<ArrowsIn />} tooltip='작게 [ Shift - ]' onClick={() => changeRadius(setting.setting.newPlanetRadius-4)} />
                 <Button content={`${setting.setting.newPlanetRadius}`} tooltip='반지름' onClick={() => null} />
                 <Button content={<ArrowsOut />} tooltip='크게 [ Shift + ]' onClick={() => changeRadius(setting.setting.newPlanetRadius+4)} />

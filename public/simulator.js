@@ -108,7 +108,7 @@ const loop = () => {
     if (updateRateCount === 60) {
         updateRateCount = 0
         const updateRate = Math.round(60 / (new Date() - updateRateStartTime) * 1000)
-        self.postMessage({code: 'ups', ups: updateRate})
+        self.postMessage({code: 'ups', data: updateRate})
     }
 }
 
@@ -138,7 +138,8 @@ self.addEventListener('message', event => {
             break
 
         case 'planetList':
-            planets = event.data.newPlanetList
+            console.log(planets, event.data.data)
+            planets = event.data.data
             break
 
         case 'updateSpeed':
@@ -202,6 +203,12 @@ self.addEventListener('message', event => {
                 trajectoryStep,
                 trajectoryLength
             })
+            break
+
+        case 'extractReq':
+            self.postMessage({code: 'extract', data: {
+                planets
+            }})
             break
 
         default:
