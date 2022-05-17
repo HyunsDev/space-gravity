@@ -10,6 +10,7 @@ let speedRate = 500
 let spaceG = 100
 let trajectoryStep = 5
 let trajectoryLength = 50
+let cache = {}
 
 const getSquaredDistance = (planet, targetPlanet) => {
     return (planet.x - targetPlanet.x)**2 + (planet.y - targetPlanet.y)**2
@@ -26,14 +27,15 @@ const getGravitationalAcceleration = (planet, targetPlanet) => {
     const cosA = (targetPlanet.x - planet.x) / r
 
     return {
-        ax: g * cosA / planet.mass,
-        ay: g * sinA / planet.mass
+        ax: g * cosA,
+        ay: g * sinA
     }
 }
 
 function simulationLoop() {
     loopId++
     const newPlanets = {...planets}
+    cache = {} // 캐시 초기화
 
     // 주요 로직
     planetLoop:
@@ -70,9 +72,18 @@ function simulationLoop() {
             }
 
             // 중력 가속도
-            const a = getGravitationalAcceleration(planet, targetPlanet)
-            newPlanets[planetId].vx = newPlanets[planetId].vx + a.ax
-            newPlanets[planetId].vy = newPlanets[planetId].vy + a.ay
+
+            let a
+            if (cache[planetId] && cache[planetId][targetPlanet]) {
+                a = cache[planetId][targetPlanet]
+                delete cache[planetId][targetPlanet]
+            } else {
+                a = getGravitationalAcceleration(planet, targetPlanet)
+                if (!cache[targetPlanet]) cache[targetPlanet] = {} 
+                cache[targetPlanet][planetId] = a
+            }
+            newPlanets[planetId].vx = newPlanets[planetId].vx + a.ax / planet.mass
+            newPlanets[planetId].vy = newPlanets[planetId].vy + a.ay / planet.mass
         }
 
         if (loopId % trajectoryStep === 0) {
@@ -143,7 +154,7 @@ self.addEventListener('message', event => {
             break
 
         case 'updateSpeed':
-            speed = event.data.speed;
+            speed = event.data.data;
             loopTimer && clearInterval(loopTimer)
             loopTimer = setInterval(loop, Math.round(16 / speed))
             break

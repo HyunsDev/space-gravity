@@ -109,7 +109,7 @@ export default function Main() {
     // 실행 속도 변경
     const changeSpeed = useCallback((speed: number) => {
         setting.updateSetting('simulatorSpeed', speed)
-        worker.requestWorker('updateSpeed', { speed: speed })
+        worker.requestWorker('updateSpeed', speed)
     }, [setting, worker])
 
     // 반지름 변경
