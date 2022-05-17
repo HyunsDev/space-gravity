@@ -1,4 +1,4 @@
-import { Controller, Button, Label, Labels, VectorCanvas, Cursor, PlanetCanvas, GridCanvas, Move } from "../components";
+import { Controller, Button, VectorCanvas, Cursor, PlanetCanvas, GridCanvas, Move } from "../components";
 import { Statistics, Setting, RandomGenerator, CoverPlanets } from "../components/main/interface";
 import { 
     Play,
@@ -17,13 +17,13 @@ import {
 } from "phosphor-react";
 import Logo from '../assets/lettering.png'
 import styled from "styled-components";
-import { useEffect, useRef, useState, useContext, useCallback } from "react";
+import { useEffect, useRef, useState, useContext, useCallback, useMemo } from "react";
 import { v4 as uuidv4 } from 'uuid';
 import FPSStats from "react-fps-stats";
 import { ToastContext } from "../context/toast";
 import { ReactComponent as GithubSvg } from '../assets/github.svg'
 
-import type { CursorMode, NewPlanet, NewPlanetOption, UpdateNewPlanetOption, DrawerOption, UpdateDrawerOption } from "../types/";
+import type { NewPlanet } from "../types/";
 import { SettingContext } from "../context/setting";
 import { WorkerContext } from "../context/worker";
 
@@ -75,20 +75,23 @@ export default function Main() {
     const [ ups, setUps ] = useState(0)
 
     // 커서 라벨 지정
-    let cursorLabel
-    switch (setting.setting.cursorMode) {
-        case 'create':
-            cursorLabel = [`질량 ${setting.setting.newPlanetMass}`]
-            if (setting.setting.newPlanetIsFixed) cursorLabel.push(`고정`)
-            break;
-        case 'create-vector':
-            cursorLabel = [`속도 (${mouseVector.x}, ${mouseVector.y})`]
-            if (setting.setting.newPlanetIsFixed) cursorLabel = ['고정됨']
-            break
-
-        default:
-            break;
-    }
+    let cursorLabel = useMemo(() => {
+        let result:string[] = []
+        switch (setting.setting.cursorMode) {
+            case 'create':
+                result = [`질량 ${setting.setting.newPlanetMass}`]
+                if (setting.setting.newPlanetIsFixed) result.push(`고정`)
+                break
+            case 'create-vector':
+                result = [`속도 (${mouseVector.x}, ${mouseVector.y})`]
+                if (setting.setting.newPlanetIsFixed) result = ['고정됨']
+                break
+            default:
+                break;
+        }
+        return result
+    }, [mouseVector.x, mouseVector.y, setting.setting.cursorMode, setting.setting.newPlanetIsFixed, setting.setting.newPlanetMass])
+    
 
     // 화면 포커스 여부
     useEffect(() => {

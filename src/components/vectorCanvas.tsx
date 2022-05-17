@@ -116,12 +116,14 @@ export function VectorCanvas(props: CanvasProps){
         if (paintTimer) return
         paintTimer = setTimeout(() => {
             const newMousePosition = getMousePos(event);
+            props.setMouseVector(newMousePosition)
+
             if (firstMousePosition && newMousePosition) {
                 setMousePosition(newMousePosition)
             }
             paintTimer = null
         }, 16)
-    },[firstMousePosition, getMousePos, isPainting]);
+    },[firstMousePosition, getMousePos, isPainting, props]);
 
     const cancelPaint = useCallback(() => {
         setting.updateSetting('cursorMode', 'create')
