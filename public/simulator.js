@@ -154,7 +154,7 @@ self.addEventListener('message', event => {
             break
 
         case 'updateSpeed':
-            speed = event.data.speed;
+            speed = event.data.data;
             loopTimer && clearInterval(loopTimer)
             loopTimer = setInterval(loop, Math.round(16 / speed))
             break
