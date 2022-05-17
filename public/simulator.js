@@ -27,8 +27,8 @@ const getGravitationalAcceleration = (planet, targetPlanet) => {
     const cosA = (targetPlanet.x - planet.x) / r
 
     return {
-        ax: g * cosA / planet.mass,
-        ay: g * sinA / planet.mass
+        ax: g * cosA,
+        ay: g * sinA
     }
 }
 
@@ -82,8 +82,8 @@ function simulationLoop() {
                 if (!cache[targetPlanet]) cache[targetPlanet] = {} 
                 cache[targetPlanet][planetId] = a
             }
-            newPlanets[planetId].vx = newPlanets[planetId].vx + a.ax
-            newPlanets[planetId].vy = newPlanets[planetId].vy + a.ay
+            newPlanets[planetId].vx = newPlanets[planetId].vx + a.ax / planet.mass
+            newPlanets[planetId].vy = newPlanets[planetId].vy + a.ay / planet.mass
         }
 
         if (loopId % trajectoryStep === 0) {
