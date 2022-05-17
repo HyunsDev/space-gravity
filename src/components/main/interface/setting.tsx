@@ -118,7 +118,7 @@ export function Setting(props: SettingProps) {
                 { showOption && showDebugOption && <>
                     <Divver />
                     <CheckBox
-                        label="FPS / UPS 표시" 
+                        label="디버그 상태 표시" 
                         value={setting.setting.drawerIsShowFPS_UPS} 
                         onClick={() => setting.updateSetting('drawerIsShowFPS_UPS', !setting.setting.drawerIsShowFPS_UPS)} 
                     />
