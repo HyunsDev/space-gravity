@@ -10,6 +10,7 @@ let speedRate = 500
 let spaceG = 100
 let trajectoryStep = 5
 let trajectoryLength = 50
+let cache = {}
 
 const getSquaredDistance = (planet, targetPlanet) => {
     return (planet.x - targetPlanet.x)**2 + (planet.y - targetPlanet.y)**2
@@ -34,6 +35,7 @@ const getGravitationalAcceleration = (planet, targetPlanet) => {
 function simulationLoop() {
     loopId++
     const newPlanets = {...planets}
+    cache = {} // 캐시 초기화
 
     // 주요 로직
     planetLoop:
@@ -70,7 +72,16 @@ function simulationLoop() {
             }
 
             // 중력 가속도
-            const a = getGravitationalAcceleration(planet, targetPlanet)
+
+            let a
+            if (cache[planetId] && cache[planetId][targetPlanet]) {
+                a = cache[planetId][targetPlanet]
+                delete cache[planetId][targetPlanet]
+            } else {
+                a = getGravitationalAcceleration(planet, targetPlanet)
+                if (!cache[targetPlanet]) cache[targetPlanet] = {} 
+                cache[targetPlanet][planetId] = a
+            }
             newPlanets[planetId].vx = newPlanets[planetId].vx + a.ax
             newPlanets[planetId].vy = newPlanets[planetId].vy + a.ay
         }
